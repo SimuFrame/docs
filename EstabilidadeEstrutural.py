@@ -6,6 +6,7 @@ from scipy.sparse import csc_matrix, issparse
 from Utilitários import atribuir_deslocamentos, expandir_dados
 from MontagemMatrizGeométrica import matriz_geometrica_analitica
 
+
 def metodo_subespaco(KE, KG, m, max_iter=40, tol=1e-6):
     """
     Método de subespaço para resolver o problema de autovalor generalizado (K - λ KG) ϕ = 0.

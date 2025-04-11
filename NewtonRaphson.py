@@ -7,6 +7,7 @@ from scipy.sparse.linalg import spsolve
 from IntegraçãoNumérica import analise_global
 from Utilitários import expandir_dados
 
+
 def verificar_convergencia(d, Δd, F, R, tol_forca=1e-6, tol_deslocamento=1e-6, epsilon=1e-12):
     """
     Verifica se o incremento de deslocamento converge com base nos critérios de força e deslocamento.
@@ -35,6 +36,7 @@ def verificar_convergencia(d, Δd, F, R, tol_forca=1e-6, tol_deslocamento=1e-6, 
     convergencia = erro_forca < tol_forca and erro_deslocamento < tol_deslocamento
 
     return convergencia, max(erro_forca, erro_deslocamento)
+
 
 def newton_raphson(F, KE, elementos, estrutura, numDOF, DOF, GLL, GLe, T, E, G, A, L, Ix, Iy, Iz, num_passos=5, max_iter=40, max_reducao=5):
     """

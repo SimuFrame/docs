@@ -4,7 +4,7 @@ import numpy as np
 
 # Bibliotecas autorais
 from GUI.plot_widgets import MatplotlibWidget
-from Plotagem import plotar_deslocamentos, plotar_esforcos
+from Visualização import plotar_deslocamentos, plotar_esforcos
 
 # PySide6 (GUI)
 from PySide6.QtWidgets import (

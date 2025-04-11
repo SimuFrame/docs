@@ -3,7 +3,6 @@ import numpy as np
 from Utilitários import expandir_dados, atribuir_deslocamentos, condensacao_estatica, matriz_esparsa
 
 
-# Obtenção das matrizes cinemáticas linear e não-linear
 def matrizes_cinematicas(elementos, ξ, A, L, Ix, de, NLG):
     """
     Calcula as matrizes cinemáticas linear e não-linear para múltiplos elementos.

@@ -42,9 +42,6 @@ class Estrutura():
                 # Adicionar conectividades entre nós consecutivos
                 novas_conec.extend(zip(indices[:-1], indices[1:]))
 
-        # Converter lista de tuplas de volta para numpy array
-        # novas_coords = np.array(novas_coords)
-
         # Atualizar as propriedades da estrutura
         self.coord = np.array(novas_coords, dtype=float)
         self.conec = np.array(novas_conec, dtype=int)
