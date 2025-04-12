@@ -2,10 +2,13 @@
 import numpy as np
 
 
-def carga_nodal_dist(elementos, q, L):
+def carga_nodal_dist(elementos, q, propriedades):
     """
     Montagem do vetor de forças nodais equivalentes devido à carga distribuída.
     """
+
+    # Comprimentos dos elementos
+    L = propriedades['L']
 
     def cload_dist(q, L):
         """ Contribuição das forças nodais devido à carga distribuída. """

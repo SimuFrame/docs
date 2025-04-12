@@ -38,7 +38,7 @@ def verificar_convergencia(d, Δd, F, R, tol_forca=1e-6, tol_deslocamento=1e-6, 
     return convergencia, max(erro_forca, erro_deslocamento)
 
 
-def newton_raphson(F, KE, elementos, estrutura, numDOF, DOF, GLL, GLe, T, E, G, A, L, Ix, Iy, Iz, num_passos=5, max_iter=40, max_reducao=5):
+def newton_raphson(F, KE, elementos, estrutura, propriedades, numDOF, DOF, GLL, GLe, T, num_passos=5, max_iter=40, max_reducao=5):
     """
     Realiza o método de Newton-Raphson para resolver o problema de análise de estruturas
     não lineares. O método utiliza o esquema de integração da Quadratura de Gauss.
@@ -131,7 +131,7 @@ def newton_raphson(F, KE, elementos, estrutura, numDOF, DOF, GLL, GLe, T, E, G, 
             d += Δd
 
             # Atualizar a matriz de rigidez tangente e o vetor de forças internas
-            Kt, Fint, fe, de = analise_global(d, elementos, estrutura, numDOF, DOF, GLL, GLe, T, E, G, A, L, Ix, Iy, Iz, NLG=True)
+            Kt, Fint, fe, de = analise_global(d, elementos, estrutura, propriedades, numDOF, DOF, GLL, GLe, T, NLG=True)
 
             # Cálculo do critério de convergência
             convergencia, erros[iteracao - 1] = verificar_convergencia(d, Δd, λ * F, R)

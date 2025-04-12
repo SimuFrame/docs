@@ -3,7 +3,7 @@ import numpy as np
 from Utilitários import condensacao_estatica, matriz_esparsa
 
 
-def matriz_geometrica_analitica(elementos, modelo, numDOF, DOF, GLe, T, fl, L, A, Ix):
+def matriz_geometrica_analitica(modelo, elementos, propriedades, numDOF, DOF, GLe, T, fl):
     """
     Calcula a matriz de rigidez geométrica analítica da estrutura.
 
@@ -27,6 +27,11 @@ def matriz_geometrica_analitica(elementos, modelo, numDOF, DOF, GLe, T, fl, L, A
 
     # Extrair o esforço normal para todos os elementos
     Ng = fl[:, 6, 0]
+
+    # Dados geométricos e constitutivos
+    L = propriedades['L']
+    A = propriedades['A']
+    Ix = propriedades['Ix']
 
     # Calcular os termos da matriz geométrica para todos os elementos
     k1 = Ng / L

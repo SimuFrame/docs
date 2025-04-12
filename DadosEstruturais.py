@@ -76,38 +76,43 @@ class Estrutura():
 
         self.momentos_concentrados.append((no, carga))
 
-    def DLOAD(self, elemento, carga_inicio, carga_fim):
+    def DLOAD(self, cargas_estrutura: dict):
         """
         Adiciona uma carga distribuída ao elemento, considerando subdivisões.
         """
-        # Salvar as cargas iniciais para fins de representação gráfica
-        self.cargas_iniciais.append((elemento, carga_inicio, carga_fim))
+        for chave, (carga_inicio, carga_fim) in cargas_estrutura.items():
+            # Converter as cargas para arrays NumPy
+            carga_inicio = np.array(carga_inicio)
+            carga_fim = np.array(carga_fim)
 
-        # Converter as cargas para arrays NumPy para operações vetorizadas
-        carga_inicio = np.array(carga_inicio)
-        carga_fim = np.array(carga_fim)
+            # Interpretar os elementos (único ou múltiplo)
+            elementos = range(chave, chave + 1) if isinstance(chave, int) else chave
 
-        if self.subdivisoes > 1:
-            # Fatores de interpolação para as cargas
-            fatores_inicio = np.linspace(0, 1, self.subdivisoes, endpoint=False)
-            fatores_fim = np.linspace(1 / self.subdivisoes, 1, self.subdivisoes)
+            for elem in elementos:
+                # Salvar as cargas iniciais para fins de representação gráfica
+                self.cargas_iniciais.append((elem, carga_inicio, carga_fim))
 
-            # Interpolar as cargas nos subelementos
-            q_inicio_sub = (1 - fatores_inicio[:, None]) * carga_inicio + fatores_inicio[:, None] * carga_fim
-            q_fim_sub = (1 - fatores_fim[:, None]) * carga_inicio + fatores_fim[:, None] * carga_fim
+                if self.subdivisoes > 1:
+                    # Fatores de interpolação para as cargas
+                    fatores_inicio = np.linspace(0, 1, self.subdivisoes, endpoint=False)
+                    fatores_fim = np.linspace(1 / self.subdivisoes, 1, self.subdivisoes)
 
-            # Gerar subelementos e armazenar as cargas subdivididas
-            cargas_subdivididas = [
-                (elemento * self.subdivisoes + i, q_inicio_sub[i].tolist(), q_fim_sub[i].tolist())
-                for i in range(self.subdivisoes)
-            ]
+                    # Interpolar as cargas nos subelementos
+                    q_inicio_sub = (1 - fatores_inicio[:, None]) * carga_inicio + fatores_inicio[:, None] * carga_fim
+                    q_fim_sub = (1 - fatores_fim[:, None]) * carga_inicio + fatores_fim[:, None] * carga_fim
 
-            # Atualizar as cargas distribuídas com as subdivisões
-            self.cargas_distribuidas.extend(cargas_subdivididas)
+                    # Gerar subelementos e armazenar as cargas subdivididas
+                    cargas_subdivididas = [
+                        (elem * self.subdivisoes + i, q_inicio_sub[i].tolist(), q_fim_sub[i].tolist())
+                        for i in range(self.subdivisoes)
+                    ]
 
-        else:
-            # Sem subdivisões: Adicionar a carga diretamente
-            self.cargas_distribuidas.append((elemento, carga_inicio.tolist(), carga_fim.tolist()))
+                    # Atualizar as cargas distribuídas com as subdivisões
+                    self.cargas_distribuidas.extend(cargas_subdivididas)
+
+                else:
+                    # Sem subdivisões: Adicionar a carga diretamente
+                    self.cargas_distribuidas.append((elem, carga_inicio.tolist(), carga_fim.tolist()))
     
     def geometria(self, secoes: dict):
         """

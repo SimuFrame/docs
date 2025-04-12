@@ -144,66 +144,100 @@ def dados_geometricos_constitutivos(elementos, estrutura):
     # Comprimento dos elementos
     L = np.linalg.norm(coord_ord[:, 1] - coord_ord[:, 0], axis=1)
 
-    # Inicializar os dados geométricos e constitutivos
-    b, h = np.zeros(elementos), np.zeros(elementos) # Parâmetros retangulares
-    raio, raio_int, raio_ext = np.zeros(elementos), np.zeros(elementos), np.zeros(elementos) # Parâmetros circulares
-    t, tf, tw = np.zeros(elementos), np.zeros(elementos), np.zeros(elementos) # Parâmetros das espessuras
-    E, nu, G = np.zeros(elementos), np.zeros(elementos), np.zeros(elementos), # Parâmetros elásticos
-    A, Ix, Iy, Iz = np.zeros(elementos), np.zeros(elementos), np.zeros(elementos), np.zeros(elementos) # Parâmetros geométricos
+    # Extrair dados geométricos e constitutivos
+    geometrias = np.array([s['geometria'] for s in estrutura.secoes])
+    dados = {k: np.array([s.get(k, 0) for s in estrutura.secoes]) for k in 
+        ['base', 'altura', 'raio', 'raio_ext', 'raio_int', 
+            'espessura', 'espessura_flange', 'espessura_alma', 'E', 'v', 'G']}
 
-    # Atribuir os dados geométricos
-    for i, secao in enumerate(estrutura.secoes):
-        secao_tipo = secao['geometria']
-        if secao_tipo == 'retangular':
-            b[i], h[i] = secao['base'], secao['altura']
-            A[i] = b[i] * h[i]
-            hx, hy = min(b[i], h[i]), max(b[i], h[i])
-            Ix[i] = hx**3 * hy * (1 / 3 - 0.21 * hx / hy * (1 - 1 / 12 * (hx / hy)**4))
-            Iy[i] = h[i] * b[i]**3 / 12
-            Iz[i] = b[i] * h[i]**3 / 12
+    # Inicializar dados geométricos
+    A = np.zeros(elementos)
+    Ix = np.zeros(elementos)
+    Iy = np.zeros(elementos)
+    Iz = np.zeros(elementos)
+    
+    # Máscaras para cada tipo de seção
+    ret_mask = geometrias == 'retangular'
+    caixa_mask = geometrias == 'caixa'
+    circ_mask = geometrias == 'circular'
+    tub_mask = geometrias == 'tubular'
+    i_mask = geometrias == 'I'
+    t_mask = geometrias == 'T'
+
+    # Seções retangulares
+    if np.any(ret_mask):
+        b, h = dados['base'][ret_mask], dados['altura'][ret_mask]
+        A[ret_mask] = b * h
         
-        elif secao_tipo == 'caixa':
-            b[i], h[i], t[i] = secao['base'], secao['altura'], secao['espessura']
-            A[i] = b[i] * h[i] - (b[i] - 2 * t[i]) * (h[i] - 2 * t[i])
-            Ix[i] = 2 * t[i]**2 * (b[i] - 2)**2 * (h[i] - t[i])**2 / (h[i] * t[i] + b[i] * t[i] - 2 * t[i]**2)
-            Iy[i] = (b[i]**3 * h[i] - (b[i] - 2 * t[i])**3 * (h[i] - 2 * t[i])) / 12
-            Iz[i] = (b[i] * h[i]**3 - (b[i] - 2 * t[i]) * (h[i] - 2 * t[i])**3) / 12
+        hx, hy = np.minimum(b, h), np.maximum(b, h)
+        Ix[ret_mask] = hx**3 * hy * (1/3 - 0.21 * hx/hy * (1 - 1/12 * (hx/hy)**4))
+        Iy[ret_mask] = h * b**3 / 12
+        Iz[ret_mask] = b * h**3 / 12
 
-        elif secao_tipo == 'circular':
-            raio[i] = secao['raio']
-            A[i] = np.pi * raio[i]**2
-            Ix[i] = Iy[i] = Iz[i] = np.pi * raio[i]**4 / 4
-            Ix[i] *= 2
-
-        elif secao_tipo == 'tubular':
-            raio_ext[i], raio_int[i] = secao['raio_ext'], secao['raio_int']
-            A[i] = np.pi * (raio_ext[i]**2 - raio_int[i]**2)
-            Ix[i] = Iy[i] = Iz[i] = np.pi * (raio_ext[i]**4 - raio_int[i]**4) / 4
-            Ix[i] *= 2
+    # Seções retangulares vazadas (caixas)
+    if np.any(caixa_mask):
+        b, h, t = dados['base'][caixa_mask], dados['altura'][caixa_mask], dados['espessura'][caixa_mask]
+        A[caixa_mask] = b * h - (b - 2*t) * (h - 2*t)
         
-        elif secao_tipo == 'I':
-            b[i], h[i], tf[i], tw[i] = secao['base'], secao['altura'], secao['espessura_flange'], secao['espessura_alma']
-            A[i] = 2 * b[i] * tf[i] + (h[i] - 2 * tf[i]) * tw[i]
-            Ix[i] = (2 * b[i] * tw[i] + (h[i] - tf[i]) * tw[i]**3) / 3
-            Iy[i] = ((h[i] - 2 * tf[i]) * tw[i]**3 + 2 * tf[i] * b[i]**3) / 12
-            Iz[i] = (b[i] * h[i]**3 - (b[i] - tw[i]) * (h[i] - 2 * tf[i])**3) / 12
+        denom = h*t + b*t - 2*t**2
+        Ix[caixa_mask] = 2 * t**2 * (b - 2)**2 * (h - t)**2 / denom
+        Iy[caixa_mask] = (b**3 * h - (b - 2*t)**3 * (h - 2*t)) / 12
+        Iz[caixa_mask] = (b * h**3 - (b - 2*t) * (h - 2*t)**3) / 12
+
+    # Seções circulares
+    if np.any(circ_mask):
+        r = dados['raio'][circ_mask]
+        A[circ_mask] = np.pi * r**2
+        Ix[circ_mask] = Iy[circ_mask] = Iz[circ_mask] = np.pi * r**4 / 4
+        Ix[circ_mask] *= 2
+
+    # Seções circulares vazadas (tubulares)
+    if np.any(tub_mask):
+        re, ri = dados['raio_ext'][tub_mask], dados['raio_int'][tub_mask]
+        A[tub_mask] = np.pi * (re**2 - ri**2)
+        Ix[tub_mask] = Iy[tub_mask] = Iz[tub_mask] = np.pi * (re**4 - ri**4) / 4
+        Ix[tub_mask] *= 2
+
+    # Seções I
+    if np.any(i_mask):
+        b, h, tf, tw = (dados['base'][i_mask], dados['altura'][i_mask], 
+                        dados['espessura_flange'][i_mask], dados['espessura_alma'][i_mask])
+        A[i_mask] = 2 * b * tf + (h - 2*tf) * tw
+        Ix[i_mask] = (2 * b * tw + (h - tf) * tw**3) / 3
+        Iy[i_mask] = ((h - 2*tf) * tw**3 + 2 * tf * b**3) / 12
+        Iz[i_mask] = (b * h**3 - (b - tw) * (h - 2*tf)**3) / 12
+
+    # Seções T
+    if np.any(t_mask):
+        b, h, tf, tw = (dados['base'][t_mask], dados['altura'][t_mask], 
+                        dados['espessura_flange'][t_mask], dados['espessura_alma'][t_mask])
+        A[t_mask] = b * tf + (h - tf) * tw
         
-        elif secao_tipo == 'T':
-            b[i], h[i], tf[i], tw[i] = secao['base'], secao['altura'], secao['espessura_flange'], secao['espessura_alma']
-            A[i] = b[i] * tf[i] + (h[i] - tf[i]) * tw[i]
+        # Cálculo do centroide
+        numerador = h**2 * tw + tf**2 * (b - tw)
+        denominador = 2 * (b * tf + (h - tf) * tw)
+        yc = h - (numerador / denominador)
+        
+        Ix[t_mask] = (b * tf**3 + (h - tf/2) * tw**3) / 3
+        Iy[t_mask] = ((h - tf) * tw**3 + b**3 * tf) / 12
+        Iz[t_mask] = (tw * yc**3 + b * (h - yc)**3 - (b - tw) * (h - yc - tf)**3) / 3
 
-            # Distância ao centroide, yc
-            yc = h[i] - (h[i]**2 * tw[i] + tf[i]**2 * (b[i] - tw[i])) / (2 * (b[i] * tf[i] + (h[i] - tf[i]) * tw[i]))
+    # Propriedades constitutivas
+    E = dados['E']
+    nu = dados['v']
+    G = dados['G']
 
-            # Momentos de inércia
-            Ix[i] = (b[i] * tf[i]**3 + (h[i] - tf[i]/2) * tw[i]**3) / 3
-            Iy[i] = ((h[i] - tf[i]) * tw[i]**3 + b[i]**3 * tf[i]) / 12
-            Iz[i] = (tw[i] * yc**3 + b[i] * (h[i] - yc)**3 - (b[i] - tw[i]) * (h[i] - yc - tf[i])**3) / 3
+    # Dicionário para armazenar todas as propriedades
+    propriedades = {
+        'L': L, 'A': A,
+        'Ix': Ix, 'Iy': Iy, 'Iz': Iz,
+        'E': E, 'nu': nu, 'G': G,
+        'b': dados['base'], 'h': dados['altura'],
+        'raio': dados['raio'], 'raio_ext': dados['raio_ext'], 'raio_int': dados['raio_int'],
+        't': dados['espessura'], 'tf': dados['espessura_flange'], 'tw': dados['espessura_alma']
+    }
 
-        # Dados constitutivos
-        E[i], nu[i], G[i] = secao['E'], secao['v'], secao['G']
-
-    return coord_ord, L, A, Ix, Iy, Iz, E, nu, G
+    return coord_ord, propriedades
 
 
 def expandir_dados(elementos, modelo, dr, fr=None, f=None):
@@ -294,7 +328,7 @@ def condensacao_estatica(modelo, k, f, gl_mantidos=None, n=12):
         return k_cond, f_cond
 
 
-def matriz_transformacao(elementos, coords, L):
+def matriz_transformacao(elementos, coords, propriedades):
     """
     Calcula as matrizes de transformação locais e globais para múltiplos elementos,
     além de obter a deformação relativa de cada eixo local x.
@@ -318,6 +352,9 @@ def matriz_transformacao(elementos, coords, L):
     ε = np.zeros((elementos, 3))
     MT = np.zeros((elementos, 3, 3))
     T = np.zeros((elementos, 12, 12))
+
+    # Comprimentos dos elementos
+    L = propriedades['L']
     
     for i in range(elementos):
         # Vetor unitário ao longo do eixo local x

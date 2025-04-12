@@ -69,13 +69,22 @@ def matrizes_cinematicas(elementos, ξ, A, L, Ix, de, NLG):
 
     return dNu, d2Nv, d2Nw, dNθx, BbNL, Ge
 
-# Função vetorizada para cálculo da matriz de rigidez e vetor de forças internas
-def analise_elemento(elementos, estrutura, de, E, G, A, L, Ix, Iy, Iz, NLG):
+
+def analise_elemento(de, elementos, estrutura, propriedades, NLG):
     kt = np.zeros((elementos, 12, 12))
     fe = np.zeros((elementos, 12, 1))
 
     # Obter os dados geométricos e constitutivos da seção
     modelo = estrutura.modelo
+
+    # Dados geométricos e constitutivos
+    L = propriedades['L']
+    A = propriedades['A']
+    Ix = propriedades['Ix']
+    Iy = propriedades['Iy']
+    Iz = propriedades['Iz']
+    E = propriedades['E']
+    G = propriedades['G']
 
     # Pontos e pesos de Gauss (comprimento)
     xg, Wgx = np.polynomial.legendre.leggauss(3)
@@ -122,7 +131,7 @@ def analise_elemento(elementos, estrutura, de, E, G, A, L, Ix, Iy, Iz, NLG):
 
     return kt, fe
 
-def analise_global(d, elementos, estrutura, numDOF, DOF, GLL, GLe, T, E, G, A, L, Ix, Iy, Iz, NLG):
+def analise_global(d, elementos, estrutura, propriedades, numDOF, DOF, GLL, GLe, T, NLG):
     """
     Calcula as matrizes de rigidez e vetores de força internos para todos os elementos
     e monta as matrizes globais e o vetor de forças internas.
@@ -176,7 +185,7 @@ def analise_global(d, elementos, estrutura, numDOF, DOF, GLL, GLe, T, E, G, A, L
     de = atribuir_deslocamentos(numDOF, DOF, GLL, GLe, T, d)
 
     # Calcula as matrizes de rigidez e vetores de força internos para todos os elementos
-    ke, fe = analise_elemento(elementos, estrutura, de, E, G, A, L, Ix, Iy, Iz, NLG)
+    ke, fe = analise_elemento(de, elementos, estrutura, propriedades, NLG)
 
     # Definir a matriz de transformação (condensada, caso aplicável)
     Te = T[:, :2*DOF, :2*DOF]

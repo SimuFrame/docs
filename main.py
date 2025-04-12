@@ -70,10 +70,10 @@ for no, momento in estrutura.momentos_concentrados:
     M[no] = momento
 
 # Obter os dados geométricos e constitutivos da seção
-coords, L, A, Ix, Iy, Iz, E, nu, G = dados_geometricos_constitutivos(elementos, estrutura)
+coords, propriedades = dados_geometricos_constitutivos(elementos, estrutura)
 
 # Obter a matriz de transformação
-T, MT, ε = matriz_transformacao(elementos, coords, L)
+T, MT, ε = matriz_transformacao(elementos, coords, propriedades)
 
 # Vetor de referência para plotagem da seção transversal dos elementos
 ref_vector = vetor_referencia(coords)
@@ -109,10 +109,10 @@ if __name__ == "__main__":
     ValidacaoEstrutura(nome_estrutura)
 
 # Obtenção das cargas nodais equivalentes devido às cargas distribuídas
-fe = carga_nodal_dist(elementos, q, L)
+fe = carga_nodal_dist(elementos, q, propriedades)
 
 # Obtenção das matrizes de rigidez da estrutura e dos elementos
-Ke, ke, f = matriz_elastica_analitica(modelo, elementos, numDOF, DOF, GLe, T, E, G, A, Ix, Iy, Iz, L, fe)
+Ke, ke, f = matriz_elastica_analitica(modelo, elementos, propriedades, numDOF, DOF, GLe, T, fe)
 
 # Obtenção das forças globais da estrutura
 Fe = vetor_forcas_globais(modelo, elementos, P, M, f, GLe, numDOF, DOF, conec_ordenada)
@@ -141,13 +141,13 @@ dl, fl, f = expandir_dados(elementos, modelo, dl, fl, f)
 fl, Fx, Fy, Fz, Mx, My, Mz = forcas_internas(elementos, f, fl, T, linear=True)
 
 # Obtenção dos dados da análise de estabilidade
-num_modos, autovalores, d_flamb = analise_estabilidade(elementos, modelo, numDOF, DOF, GLe, GLL, T, L, A, Ix, KE, fl)
+num_modos, autovalores, d_flamb = analise_estabilidade(modelo, elementos, propriedades, numDOF, DOF, GLe, GLL, T, KE, fl)
 
 # Inicia o timer
 ti = time.time()
 
 # Obter os deslocamentos e esforços não-lineares
-dg, dnl, fnl = newton_raphson(F, KE, elementos, estrutura, numDOF, DOF, GLL, GLe, T, E, G, A, L, Ix, Iy, Iz)
+dg, dnl, fnl = newton_raphson(F, KE, elementos, estrutura, propriedades, numDOF, DOF, GLL, GLe, T)
 
 # Finaliza o timer
 tf = time.time()
@@ -218,10 +218,12 @@ def campo_deslocamento(ξ, Le, n):
 
     return N
 
-def calcular_esforços_plotagem(n):
+def calcular_esforços_plotagem(elementos, propriedades, coords, dnl, MT, n):
     """
     Calcular os esforços lineares e não lineares da estrutura, armazenando-os em variáveis próprias de plotagem, 'p' (subscrito 'l' para linear, 'nl' para não-linear)
     """
+    # Obter o comprimento dos elementos
+    L = propriedades['L']
 
     # Inicializar dicionários para armazenar os resultados
     esforcos_lineares = {key: np.zeros((elementos, n)) for key in ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']}
@@ -310,7 +312,7 @@ def calcular_deslocamentos_plotagem():
     return deslocamentos_lineares, deslocamentos_nao_lineares, deslocamentos_flambagem
 
 # Armazenar os esforços de plotagem
-xp, esforcos_lineares, esforcos_nao_lineares = calcular_esforços_plotagem(pontos_int)
+xp, esforcos_lineares, esforcos_nao_lineares = calcular_esforços_plotagem(elementos, propriedades, coords, dnl, MT, pontos_int)
 
 # Armazenar os deslocamentos da estrutura
 desl_linear, desl_nao_linear, desl_flambagem = calcular_deslocamentos_plotagem()

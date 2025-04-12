@@ -178,7 +178,9 @@ elif caso == 4:
     estrutura.definir_apoios(condicoes_contorno)
 
     # Adicionar cargas
-    estrutura.DLOAD(0, [0, -100, 0], [0, -100, 0])
+    estrutura.DLOAD({
+        0: [[0, -100, 0], [0, -100, 0]]
+    })
 
     # Definir parâmetros constitutivos e geométricos
     estrutura.geometria({

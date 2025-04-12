@@ -78,7 +78,7 @@ def graus_liberdade(elementos, nos, estrutura, DOF):
 
     return GLe, numDOF, resDOF
 
-def matriz_elastica_analitica(modelo, elementos, numDOF, DOF, GLe, T, E, G, A, Ix, Iy, Iz, L, f):
+def matriz_elastica_analitica(modelo, elementos, propriedades, numDOF, DOF, GLe, T, f):
     """
     Calcula a matriz de rigidez elástica analítica da estrutura.
 
@@ -103,6 +103,15 @@ def matriz_elastica_analitica(modelo, elementos, numDOF, DOF, GLe, T, E, G, A, I
     """
     # Inicialização da matriz de rigidez elástica local
     ke = np.zeros((elementos, 12, 12))
+
+    # Dados geométricos e constitutivos
+    L = propriedades['L']
+    A = propriedades['A']
+    E = propriedades['E']
+    G = propriedades['G']
+    Ix = propriedades['Ix']
+    Iy = propriedades['Iy']
+    Iz = propriedades['Iz']
 
     # Termos da matriz de rigidez elástica
     k1 = E * A / L

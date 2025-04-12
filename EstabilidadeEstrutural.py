@@ -59,7 +59,7 @@ def metodo_subespaco(KE, KG, m, max_iter=40, tol=1e-6):
 
     return autovalores[:m], Q[:, :m] # type: ignore
 
-def analise_estabilidade(elementos, modelo, numDOF, DOF, GLe, GLL, T, L, A, Ix, Ke_reduzida, fl, num_modos=5):
+def analise_estabilidade(modelo, elementos, propriedades, numDOF, DOF, GLe, GLL, T, Ke_reduzida, fl, num_modos=5):
     """
     Análise de estabilidade estrutural (flambagem linear) com base no método de subespaço.
 
@@ -84,7 +84,7 @@ def analise_estabilidade(elementos, modelo, numDOF, DOF, GLe, GLL, T, L, A, Ix, 
         d_flamb (list): Vetores de deslocamento para cada modo de flambagem.
     """
     # Calcula a matriz de rigidez geométrica global
-    Kg = matriz_geometrica_analitica(elementos, modelo, numDOF, DOF, GLe, T, fl, L, A, Ix)
+    Kg = matriz_geometrica_analitica(modelo, elementos, propriedades, numDOF, DOF, GLe, T, fl)
 
     # Aplicar as condições de contorno para a matriz de rigidez geométrica
     KE = Ke_reduzida
