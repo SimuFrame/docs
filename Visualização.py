@@ -25,9 +25,8 @@ def plot_estrutura_pyvista(grid_tubos, grid_secao, plotter, estrutura, transpare
     # Adicionar título ao gráfico
     plotter.add_text(f"{estrutura.nome}", position='upper_right', font_size=14)
 
-    # Plotar a estrutura
-    plotter.show()
-
+    # Adicionar eixos ao gráfico
+    plotter.show_axes()
 
 def coordenadas_deformadas(coords, dl, dnl, d_flamb, MT, tipo, escala):
     """
@@ -218,54 +217,58 @@ def plotar_deslocamentos(tubos_ind, malha_ind, tubos_def, malha_def, estrutura, 
 
 def plotar_esforcos(tubos_ind, malha_ind, tubos_def, malha_def, elementos, estrutura, xp, coords, 
                     esforcos_lineares, esforcos_nao_lineares, MT, pontos_int, biblioteca, analise, esforco, escala, widget):
+    # Determinar os valores dos esforços
+    if analise == 'linear':
+        esforcos = {
+            'Fx': (-esforcos_lineares['Fx'], 'Fx (kN)'),
+            'Fy': (esforcos_lineares['Fy'], 'Fy (kN)'),
+            'Fz': (esforcos_lineares['Fz'], 'Fz (kN)'),
+            'Mx': (esforcos_lineares['Mx'], 'Mx (kN.m)'),
+            'My': (esforcos_lineares['My'], 'My (kN.m)'),
+            'Mz': (esforcos_lineares['Mz'], 'Mz (kN.m)'),
+        }
+    else:
+        esforcos = {
+            'Fx': (-esforcos_nao_lineares['Fx'], 'Fx (kN)'),
+            'Fy': (esforcos_nao_lineares['Fy'], 'Fy (kN)'),
+            'Fz': (esforcos_nao_lineares['Fz'], 'Fz (kN)'),
+            'Mx': (esforcos_nao_lineares['Mx'], 'Mx (kN.m)'),
+            'My': (esforcos_nao_lineares['My'], 'My (kN.m)'),
+            'Mz': (esforcos_nao_lineares['Mz'], 'Mz (kN.m)'),
+        }
+    
     if biblioteca == 'matplotlib':
         ax = widget.figure.gca()
         ax.clear()
 
         # Dicionário de esforços por tipo
-        esforcos = {
-            'Fx': {'linear': esforcos_lineares['Fx'], 'não-linear': esforcos_nao_lineares['Fx'],
-                    'title': 'Fx (kN)', 'color': 'b', 'inverter': True, 'direction': 1, 'eixo': 1},
-            'Fy': {'linear': esforcos_lineares['Fy'], 'não-linear': esforcos_nao_lineares['Fy'],
-                   'title': 'Fy (kN)', 'color': 'g', 'inverter': False, 'direction': 1, 'eixo': 1},
-            'Fz': {'linear': esforcos_lineares['Fz'], 'não-linear': esforcos_nao_lineares['Fz'], 
-                   'title': 'Fz (kN)', 'color': 'r', 'inverter': False, 'direction': 1, 'eixo': 2},
-            'Mx': {'linear': esforcos_lineares['Mx'], 'não-linear': esforcos_nao_lineares['Mx'],
-                   'title': 'Mx (kN.m)', 'color': 'peru', 'inverter': False, 'direction': -1, 'eixo': 1},
-            'My': {'linear': esforcos_lineares['My'], 'não-linear': esforcos_nao_lineares['My'],
-                   'title': 'My (kN.m)', 'color': 'purple', 'inverter': False, 'direction': -1, 'eixo': 2},
-            'Mz': {'linear': esforcos_lineares['Mz'], 'não-linear': esforcos_nao_lineares['Mz'],
-                   'title': 'Mz (kN.m)', 'color': 'slateblue', 'inverter': False, 'direction': -1, 'eixo': 1}
+        dados = {
+            'Fx': {'color': 'b', 'direction': 1, 'eixo': 1},
+            'Fy': {'color': 'g', 'direction': 1, 'eixo': 1},
+            'Fz': {'color': 'r', 'direction': 1, 'eixo': 2},
+            'Mx': {'color': 'peru', 'direction': -1, 'eixo': 1},
+            'My': {'color': 'purple', 'direction': -1, 'eixo': 2},
+            'Mz': {'color': 'slateblue', 'direction': -1, 'eixo': 1}
         }
 
-        # Obtém os dados do esforço selecionado
-        dados = esforcos[esforco]
-
-        # Escolhe entre linear ou não-linear
-        f = dados[analise]
+        # Obtém os valores do esforço selecionado
+        valores, title = esforcos[esforco]
 
         # Magnitude unitária dos esforços
-        magnitude = 1 / np.max(np.abs(f), initial=1)
+        magnitude = 1 / np.max(np.abs(valores), initial=1)
 
         # Escalar os esforços de acordo com dados do usuário
-        f_escalado = (magnitude * f) * escala
-
-        # Ajusta a inversão de sinal, se necessário
-        if dados['inverter']:
-            f_escalado *= -1
+        f_escalado = (magnitude * valores) * escala
 
         # Define o rótulo para os esforços
         def label(i, idx):
-            if dados['inverter']:
-                return f'{-dados[analise][i, idx]:.3f}'
-            else:
-                return f'{dados[analise][i, idx]:.3f}'
+            return f'{valores[i, idx]:.3f}'
 
         # Inverter a direção do gráfico, caso necessário
-        direction = dados['direction']
+        direction = dados[esforco]['direction']
 
         # Obtém o eixo em que os esforços devem ser plotados
-        eixo = dados['eixo']
+        eixo = dados[esforco]['eixo']
 
         # Cria a matriz de forças corretamente posicionada
         f = np.zeros((elementos, pontos_int, 3))
@@ -274,16 +277,13 @@ def plotar_esforcos(tubos_ind, malha_ind, tubos_def, malha_def, elementos, estru
         f[:, :, eixo] = direction * f_escalado
 
         # Aplica a transformação para o sistema global
-        f_transformed = np.einsum('eij,epj->epi', MT.transpose(0, 2, 1), f)
+        f_global = np.einsum('eji,epj->epi', MT, f)
 
         # Coordenadas dos pontos deformados
-        pontos_deformados = xp[..., [0, 2, 1]] + escala * f_transformed[..., [0, 2, 1]]
+        pontos_deformados = xp[..., [0, 2, 1]] + escala * f_global[..., [0, 2, 1]]
 
         # Definir a cor da plotagem
-        color = dados['color']
-
-        # Definir o título do gráfico
-        title = dados['title']
+        color = dados[esforco]['color']
 
         # Plotagem da estrutura
         for i in range(elementos):
@@ -317,9 +317,8 @@ def plotar_esforcos(tubos_ind, malha_ind, tubos_def, malha_def, elementos, estru
                     va=va2, fontsize=14)
 
             # Adicionar os valores máximos e mínimos
-            valores = f_transformed[i, :, 0] if esforco in ['Fx'] else f_transformed[i, :, 1] if esforco in ['Fy'] else f_transformed[i, :, 2]
-            max_idx = argrelextrema(valores, np.greater, order=5)[0]
-            min_idx = argrelextrema(valores, np.less, order=5)[0]
+            max_idx = argrelextrema(valores[i], np.greater, order=5)[0]
+            min_idx = argrelextrema(valores[i], np.less, order=5)[0]
 
             if max_idx.size > 0 or min_idx.size > 0:
                 idx = (max_idx[0] if max_idx.size > 0 else min_idx[0])
@@ -362,26 +361,6 @@ def plotar_esforcos(tubos_ind, malha_ind, tubos_def, malha_def, elementos, estru
 
         # Plotar a estrutura indeformada
         plot_estrutura_pyvista(tubos_ind, malha_ind, widget, estrutura, transparencia=0.5, plotar_secao=False)
-
-        # Determinar os valores dos esforços
-        if analise == 'linear':
-            esforcos = {
-                'Fx': (-esforcos_lineares['Fx'], 'Fx (kN)'),
-                'Fy': (esforcos_lineares['Fy'], 'Fy (kN)'),
-                'Fz': (esforcos_lineares['Fz'], 'Fz (kN)'),
-                'Mx': (esforcos_lineares['Mx'], 'Mx (kN.m)'),
-                'My': (esforcos_lineares['My'], 'My (kN.m)'),
-                'Mz': (esforcos_lineares['Mz'], 'Mz (kN.m)'),
-            }
-        else:
-            esforcos = {
-                'Fx': (-esforcos_nao_lineares['Fx'], 'Fx (kN)'),
-                'Fy': (esforcos_nao_lineares['Fy'], 'Fy (kN)'),
-                'Fz': (esforcos_nao_lineares['Fz'], 'Fz (kN)'),
-                'Mx': (esforcos_nao_lineares['Mx'], 'Mx (kN.m)'),
-                'My': (esforcos_nao_lineares['My'], 'My (kN.m)'),
-                'Mz': (esforcos_nao_lineares['Mz'], 'Mz (kN.m)'),
-            }
 
         if esforco not in esforcos:
             raise ValueError(f"Tipo de esforço desconhecido: {esforco}")
