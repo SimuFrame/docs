@@ -179,10 +179,11 @@ elif caso == 4:
 
     # Adicionar cargas
     estrutura.DLOAD(0, [0, -100, 0], [0, -100, 0])
-    # estrutura.DLOAD(0, [0, 0, 100], [0, 0, 100])
 
     # Definir parâmetros constitutivos e geométricos
-    estrutura.geometria('retangular', E=2.7e7, v=0.2, base=0.20, altura=0.40)
+    estrutura.geometria({
+        range(0, 1): {"geometria": "retangular", "E": 2.7e7, "v": 0.3, "base": 0.2, "altura": 0.4},
+    })
     # estrutura.geometria('caixa', E=2.1e8, v=0.3, base=0.20, altura=0.40, espessura=0.02)
     # estrutura.geometria('T', E=2.1e8, v=0.3, base=0.3, altura=0.4, espessura_flange=0.02, espessura_alma=0.03)
     # estrutura.geometria('circular', E=2e8, v=0.3, raio=0.1)

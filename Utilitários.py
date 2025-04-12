@@ -144,60 +144,64 @@ def dados_geometricos_constitutivos(elementos, estrutura):
     # Comprimento dos elementos
     L = np.linalg.norm(coord_ord[:, 1] - coord_ord[:, 0], axis=1)
 
-    # Extração dos dados de seção transversal
-    secao = estrutura.secao
-    secao_tipo = secao['seção']
+    # Inicializar os dados geométricos e constitutivos
+    b, h = np.zeros(elementos), np.zeros(elementos) # Parâmetros retangulares
+    raio, raio_int, raio_ext = np.zeros(elementos), np.zeros(elementos), np.zeros(elementos) # Parâmetros circulares
+    t, tf, tw = np.zeros(elementos), np.zeros(elementos), np.zeros(elementos) # Parâmetros das espessuras
+    E, nu, G = np.zeros(elementos), np.zeros(elementos), np.zeros(elementos), # Parâmetros elásticos
+    A, Ix, Iy, Iz = np.zeros(elementos), np.zeros(elementos), np.zeros(elementos), np.zeros(elementos) # Parâmetros geométricos
 
-    # Dados geométricos
-    if secao_tipo == 'retangular':
-        b, h = secao['base'], secao['altura']
-        A = b * h
-        hx, hy = min(b, h), max(b, h)
-        Ix = hx**3 * hy * (1 / 3 - 0.21 * hx / hy * (1 - 1 / 12 * (hx / hy)**4))
-        Iy = h * b**3 / 12
-        Iz = b * h**3 / 12
-    
-    elif secao_tipo == 'caixa':
-        b, h, t = secao['base'], secao['altura'], secao['espessura']
-        A = b * h - (b - 2 * t) * (h - 2 * t)
-        Ix = 2 * t**2 * (b - 2)**2 * (h - t)**2 / (h * t + b * t - 2 * t**2)
-        Iy = (b**3 * h - (b - 2 * t)**3 * (h - 2 * t)) / 12
-        Iz = (b * h**3 - (b - 2 * t) * (h - 2 * t)**3) / 12
+    # Atribuir os dados geométricos
+    for i, secao in enumerate(estrutura.secoes):
+        secao_tipo = secao['geometria']
+        if secao_tipo == 'retangular':
+            b[i], h[i] = secao['base'], secao['altura']
+            A[i] = b[i] * h[i]
+            hx, hy = min(b[i], h[i]), max(b[i], h[i])
+            Ix[i] = hx**3 * hy * (1 / 3 - 0.21 * hx / hy * (1 - 1 / 12 * (hx / hy)**4))
+            Iy[i] = h[i] * b[i]**3 / 12
+            Iz[i] = b[i] * h[i]**3 / 12
+        
+        elif secao_tipo == 'caixa':
+            b[i], h[i], t[i] = secao['base'], secao['altura'], secao['espessura']
+            A[i] = b[i] * h[i] - (b[i] - 2 * t[i]) * (h[i] - 2 * t[i])
+            Ix[i] = 2 * t[i]**2 * (b[i] - 2)**2 * (h[i] - t[i])**2 / (h[i] * t[i] + b[i] * t[i] - 2 * t[i]**2)
+            Iy[i] = (b[i]**3 * h[i] - (b[i] - 2 * t[i])**3 * (h[i] - 2 * t[i])) / 12
+            Iz[i] = (b[i] * h[i]**3 - (b[i] - 2 * t[i]) * (h[i] - 2 * t[i])**3) / 12
 
-    elif secao_tipo == 'circular':
-        raio = secao['raio']
-        A = np.pi * raio**2
-        Ix = Iy = Iz = np.pi * raio**4 / 4
-        Ix *= 2
+        elif secao_tipo == 'circular':
+            raio[i] = secao['raio']
+            A[i] = np.pi * raio[i]**2
+            Ix[i] = Iy[i] = Iz[i] = np.pi * raio[i]**4 / 4
+            Ix[i] *= 2
 
-    elif secao_tipo == 'tubular':
-        raio_ext, raio_int = secao['raio_ext'], secao['raio_int']
-        A = np.pi * (raio_ext**2 - raio_int**2)
-        Ix = Iy = Iz = np.pi * (raio_ext**4 - raio_int**4) / 4
-        Ix *= 2
-    
-    elif secao_tipo == 'I':
-        b, h, tf, tw = secao['base'], secao['altura'], secao['espessura_flange'], secao['espessura_alma']
-        A = 2 * b * tf + (h - 2 * tf) * tw
-        Ix = (2 * b * tw + (h - tf) * tw**3) / 3
-        Iy = ((h - 2 * tf) * tw**3 + 2 * tf * b**3) / 12
-        Iz = (b * h**3 - (b - tw) * (h - 2 * tf)**3) / 12
-    
-    elif secao_tipo == 'T':
-        b, h, tf, tw = secao['base'], secao['altura'], secao['espessura_flange'], secao['espessura_alma']
-        A = b * tf + (h - tf) * tw
+        elif secao_tipo == 'tubular':
+            raio_ext[i], raio_int[i] = secao['raio_ext'], secao['raio_int']
+            A[i] = np.pi * (raio_ext[i]**2 - raio_int[i]**2)
+            Ix[i] = Iy[i] = Iz[i] = np.pi * (raio_ext[i]**4 - raio_int[i]**4) / 4
+            Ix[i] *= 2
+        
+        elif secao_tipo == 'I':
+            b[i], h[i], tf[i], tw[i] = secao['base'], secao['altura'], secao['espessura_flange'], secao['espessura_alma']
+            A[i] = 2 * b[i] * tf[i] + (h[i] - 2 * tf[i]) * tw[i]
+            Ix[i] = (2 * b[i] * tw[i] + (h[i] - tf[i]) * tw[i]**3) / 3
+            Iy[i] = ((h[i] - 2 * tf[i]) * tw[i]**3 + 2 * tf[i] * b[i]**3) / 12
+            Iz[i] = (b[i] * h[i]**3 - (b[i] - tw[i]) * (h[i] - 2 * tf[i])**3) / 12
+        
+        elif secao_tipo == 'T':
+            b[i], h[i], tf[i], tw[i] = secao['base'], secao['altura'], secao['espessura_flange'], secao['espessura_alma']
+            A[i] = b[i] * tf[i] + (h[i] - tf[i]) * tw[i]
 
-        # Distância ao centroide, yc
-        yc = h - (h**2 * tw + tf**2 * (b - tw)) / (2 * (b * tf + (h - tf) * tw))
+            # Distância ao centroide, yc
+            yc = h[i] - (h[i]**2 * tw[i] + tf[i]**2 * (b[i] - tw[i])) / (2 * (b[i] * tf[i] + (h[i] - tf[i]) * tw[i]))
 
-        # Momentos de inércia
-        Ix = (b * tf**3 + (h - tf/2) * tw**3) / 3
-        Iy = ((h - tf) * tw**3 + b**3 * tf) / 12
-        Iz = (tw * yc**3 + b * (h - yc)**3 - (b - tw) * (h - yc - tf)**3) / 3
+            # Momentos de inércia
+            Ix[i] = (b[i] * tf[i]**3 + (h[i] - tf[i]/2) * tw[i]**3) / 3
+            Iy[i] = ((h[i] - tf[i]) * tw[i]**3 + b[i]**3 * tf[i]) / 12
+            Iz[i] = (tw[i] * yc**3 + b[i] * (h[i] - yc)**3 - (b[i] - tw[i]) * (h[i] - yc - tf[i])**3) / 3
 
-    # Dados geométricos e constitutivos
-    E, nu, G = secao['E'], secao['v'], secao['G']
-    A, Ix, Iy, Iz, E, nu, G = (np.full(elementos, val) for val in (A, Ix, Iy, Iz, E, nu, G)) # type: ignore
+        # Dados constitutivos
+        E[i], nu[i], G[i] = secao['E'], secao['v'], secao['G']
 
     return coord_ord, L, A, Ix, Iy, Iz, E, nu, G
 
@@ -450,7 +454,14 @@ def coordenadas_deformadas(coords, dl, dnl, d_flamb, MT):
         # Extrai deslocamentos dos dois nós
         dloc = np.stack((d[:, :3], d[:, 6:9]), axis=1).squeeze()
         dglob = np.einsum('eji,enj->eni', MT, dloc, optimize=True)
-        magnitude = 1 / np.max(np.abs(d))           # Fator de escala unitário
+
+        # Verifica se dglob é válido (não nulo)
+        if np.size(dglob) == 0 or not np.any(dglob):
+            d_max = 1
+        else:
+            d_max = np.max(np.abs(dglob))
+
+        magnitude = max(1, 1 / d_max)               # Fator de escala unitário
         cdef = coords + magnitude * dglob
         cdef[:, :, [1, 2]] = cdef[:, :, [2, 1]]     # Trocar eixos y <-> z
         return cdef

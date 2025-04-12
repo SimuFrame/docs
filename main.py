@@ -26,7 +26,7 @@ from PySide6.QtWidgets import QApplication
 from pyvistaqt import BackgroundPlotter
 
 # Dados de entrada:
-import Data.Pórtico as Entrada
+import Data.Viga as Entrada
 
 # Limpa a tela de forma compat vel com diferentes sistemas operacionais
 os.system('cls' if os.name == 'nt' else 'clear')

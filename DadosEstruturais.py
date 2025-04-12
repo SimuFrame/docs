@@ -9,7 +9,6 @@ class Estrutura():
         self.coord_original = np.copy(self.coord)       # Coordenadas antes da subdivisão
         self.conec_original = np.copy(self.conec)       # Conectividade antes da subdivisão
         self.subdivisoes = max(1, subdivisoes)          # Garantir que subdivisões seja pelo menos 1
-        self.secao = {}                                 # Dicionário para armazenar as propriedades geométricas das seções
 
         # Inicializar novos nós e conectividades
         novas_coords = list(map(tuple, self.coord))  # Converter array numpy para lista de tuplas
@@ -110,7 +109,38 @@ class Estrutura():
             # Sem subdivisões: Adicionar a carga diretamente
             self.cargas_distribuidas.append((elemento, carga_inicio.tolist(), carga_fim.tolist()))
     
-    def geometria(self, tipo, **kwargs):
+    def geometria(self, secoes: dict):
+        """
+        Define as seções da estrutura por intervalos de elementos.
+
+        Args:
+        - secoes_intervalos (dict): Mapeia intervalos (slice ou range) para dicionários de propriedades da seção.
+
+        Exemplo:
+        estrutura.geometria_por_intervalo({
+            slice(0, 10): {"geometria": "retangular", "E": ..., "v": ..., "base": ..., "altura": ...},
+            range(10, 20): {"geometria": "tubular", "E": ..., "v": ..., "raio_ext": ..., "raio_int": ...},
+        })
+        """
+        # Inicializar a lista de seções
+        self.secao_inicial = [None] * len(self.conec_original)
+        self.secoes = []
+
+        # Iterar sobre os intervalos e definir as seções
+        for intervalo, dados_secao in secoes.items():
+            indices = range(*intervalo.indices(self.num_elementos)) if isinstance(intervalo, slice) else list(intervalo)
+            for i in indices:
+                self.secao_inicial[i] = self._validar_secao(dados_secao)
+
+        # Verificar se todas as seções foram definidas
+        if any(s is None for s in self.secao_inicial):
+            raise ValueError("Nem todos os elementos foram definidos.")
+        
+        # Aplicar as seções à estrutura subdividida
+        for secao in self.secao_inicial:
+            self.secoes.extend([secao] * self.subdivisoes)
+
+    def _validar_secao(self, dados_secao):
         """
         Define as propriedades geométricas de uma seção transversal.
 
@@ -118,11 +148,6 @@ class Estrutura():
         - tipo (str): O tipo da seção (e.g., "retangular", "circular", "tubular").
         - **kwargs: Parâmetros específicos para cada tipo de seção.
         """
-        # Determinar o módulo de elasticidade longitudinal e transversal do elemento
-        E = kwargs.get("E")
-        v = kwargs.get("v")
-        G = E / (2 * (1 + v)) if E and v else None
-
         # Dicionário de validação de parâmetros para cada tipo de seção
         validacoes = {
             "retangular": {"base": float, "altura": float},
@@ -133,30 +158,28 @@ class Estrutura():
             "T": {"base": float, "altura": float, "espessura_flange": float, "espessura_alma": float},
         }
 
-        # Verificar se o tipo de seção é válido
-        if tipo not in validacoes:
-            raise ValueError(f"Tipo de seção '{tipo}' não reconhecido.")
+        geometria = dados_secao.get("geometria")
+        if geometria not in validacoes:
+            raise ValueError(f"Tipo de seção '{geometria}' não reconhecido.")
 
-        # Inicializar todas as dimensões geométricas como strings vazias
+        # Definir dados constitutivos da seção
+        E = dados_secao.get("E")
+        v = dados_secao.get("v")
+        G = E / (2 * (1 + v)) if E and v else None
+
+        # Inicializar os dados geométricos
         dimensoes = {
-            "base": None,
-            "altura": None,
-            "raio": None,
-            "raio_ext": None,
-            "raio_int": None,
-            "espessura": None,
-            "espessura_flange": None,
-            "espessura_alma": None,
+            "base": None, "altura": None, "raio": None, "raio_ext": None,
+            "raio_int": None, "espessura": None, "espessura_flange": None, "espessura_alma": None,
         }
 
-        # Validar os parâmetros fornecidos e atualizar as dimensões relevantes
-        for param, tipo_param in validacoes[tipo].items():
-            valor = kwargs.get(param)
+        # Validar e armazenar os parâmetros da seção
+        for param, tipo_param in validacoes[geometria].items():
+            valor = dados_secao.get(param)
             if valor is None:
-                raise ValueError(f"Para seção {tipo}, '{param}' é obrigatório.")
+                raise ValueError(f"Seção {geometria} precisa do parâmetro '{param}'.")
             if not isinstance(valor, tipo_param):
                 raise ValueError(f"'{param}' deve ser do tipo {tipo_param.__name__}.")
-            dimensoes[param] = valor # type: ignore
+            dimensoes[param] = valor
 
-        # Criar o dicionário da seção
-        self.secao = {"seção": tipo, **dimensoes, "E": E, "v": v, "G": G}
+        return {"geometria": geometria, **dimensoes, "E": E, "v": v, "G": G}

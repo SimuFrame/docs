@@ -470,17 +470,15 @@ def criar_malha_elemento(coord, estrutura, ref_vector):
     Função para criar a seção transversal da estrutura com o PyVista.
     Válida tanto para estrutura deformada como indeformada.
     """
-
     # Obter os dados geométricos e constitutivos do elemento
     coord1, coord2 = coord
     L_vec = coord2 - coord1
     rot_matrix = matriz_rotacao_malha(L_vec, ref_vector)
-    dados = estrutura.secao
-    secao_transversal = dados['seção']
+    secao_transversal = estrutura['geometria']
 
     # Criar a seção transversal
     if secao_transversal == 'retangular':
-        b, h = dados['base'], dados['altura']
+        b, h = estrutura['base'], estrutura['altura']
 
         # Definir pontos para o perfil retangular
         pontos = np.array([[-b/2, -h/2, 0], [b/2, -h/2, 0], [b/2, h/2, 0], [-b/2, h/2, 0]])
@@ -492,7 +490,7 @@ def criar_malha_elemento(coord, estrutura, ref_vector):
         secao = pv.PolyData(pontos, faces)
     
     elif secao_transversal == 'caixa':
-        b, h, t = dados['base'], dados['altura'], dados['espessura']
+        b, h, t = estrutura['base'], estrutura['altura'], estrutura['espessura']
 
         # Definir pontos
         pontos = np.array([
@@ -522,13 +520,13 @@ def criar_malha_elemento(coord, estrutura, ref_vector):
         secao = pv.PolyData(pontos, faces=np.hstack([[3, *t] for t in triangles]))
 
     elif secao_transversal == 'circular':
-        secao = pv.Circle(radius=dados['raio'], resolution=50)
+        secao = pv.Circle(radius=estrutura['raio'], resolution=50)
 
     elif secao_transversal == 'tubular':
-        secao = pv.Disc(inner=dados['raio_int'], outer=dados['raio_ext'], r_res=50, c_res=50)
+        secao = pv.Disc(inner=estrutura['raio_int'], outer=estrutura['raio_ext'], r_res=50, c_res=50)
 
     elif secao_transversal == 'I':
-        b, h, tf, tw = dados['base'], dados['altura'], dados['espessura_flange'], dados['espessura_alma']
+        b, h, tf, tw = estrutura['base'], estrutura['altura'], estrutura['espessura_flange'], estrutura['espessura_alma']
 
         # Definir pontos para o perfil I
         pontos = np.array([
@@ -562,7 +560,7 @@ def criar_malha_elemento(coord, estrutura, ref_vector):
         secao = pv.PolyData(pontos, faces)
     
     elif secao_transversal == 'T':
-        b, h, tf, tw = dados['base'], dados['altura'], dados['espessura_flange'], dados['espessura_alma']
+        b, h, tf, tw = estrutura['base'], estrutura['altura'], estrutura['espessura_flange'], estrutura['espessura_alma']
 
         # Definir pontos para o perfil T
         pontos = np.array([
@@ -607,6 +605,9 @@ def criar_malhas_em_paralelo(i, pontos, estrutura, ref_vector, deformada=False, 
     malha = {'linear': None, 'não-linear': None, 'flambagem': []}
     tubo = {'linear': None, 'não-linear': None, 'flambagem': []}
 
+    # Obter a estrutura do elemento 'i'
+    estrutura_elemento = estrutura.secoes[i]
+
     # Criar a malha do elemento (deformada ou indeformada)
     if deformada:
         # Processar cada tipo de análise
@@ -614,7 +615,7 @@ def criar_malhas_em_paralelo(i, pontos, estrutura, ref_vector, deformada=False, 
             coords_list = pontos[analise][i] if analise == 'flambagem' else [pontos[analise][i]]
             for modo, coords in enumerate(coords_list):
                 if plotar_secao:
-                    malha_atual = criar_malha_elemento(coords, estrutura, ref_vector[i])
+                    malha_atual = criar_malha_elemento(coords, estrutura_elemento, ref_vector[i])
                 else:
                     malha_atual = None
 
@@ -631,7 +632,7 @@ def criar_malhas_em_paralelo(i, pontos, estrutura, ref_vector, deformada=False, 
         # Processar caso não deformado
         coords = pontos[i]
         if plotar_secao:
-            malha = criar_malha_elemento(coords, estrutura, ref_vector[i])
+            malha = criar_malha_elemento(coords, estrutura_elemento, ref_vector[i])
         else:
             malha = None
         tubo = pv.lines_from_points(coords).tube(radius=0.02)
