@@ -20,7 +20,7 @@ def graus_liberdade(elementos, nos, estrutura, DOF):
     numDOF = DOF * nos
 
     # Dicionário para mapear vínculos aos graus de liberdade restritos
-    vinculos_viga = {
+    vinculos = {'viga': {
         'XSYMM': [0, 4, 5],
         'YSYMM': [1, 3, 5],
         'ZSYMM': [2, 3, 4],
@@ -32,9 +32,8 @@ def graus_liberdade(elementos, nos, estrutura, DOF):
         'FIXOXZ': [0, 1, 2, 3, 5],
         'FIXOYZ': [0, 1, 2, 4, 5],
         'ENGASTE': list(range(6))
-    }
-
-    vinculos_trelica = {
+    },
+        'treliça': {
         'XSYMM': [0],
         'YSYMM': [1],
         'ZSYMM': [2],
@@ -44,16 +43,16 @@ def graus_liberdade(elementos, nos, estrutura, DOF):
         'ARTICULADO': [0, 1, 2],
         'ENGASTE': [0, 1, 2],
         'FIXO': [0, 1, 2]
-    }
+    }}
 
     # Graus de liberdade restritos (com apoios)
     resDOF = []
 
     # Verifica o modelo da estrutura
     if estrutura.modelo == 'viga':
-        vinculos = vinculos_viga
+        _vinculos = vinculos['viga']
     elif estrutura.modelo == 'treliça':
-        vinculos = vinculos_trelica
+        _vinculos = vinculos['treliça']
     else:
         raise ValueError("Estrutura inválida. Use 'treliça' ou 'viga'.")
 
@@ -61,8 +60,8 @@ def graus_liberdade(elementos, nos, estrutura, DOF):
     for i, vinculo in enumerate(estrutura.vinculacoes):
         idx = DOF * i  # Índice base para o nó atual
 
-        if vinculo in vinculos:
-            resDOF.extend([idx + dof for dof in vinculos[vinculo]])
+        if vinculo in _vinculos:
+            resDOF.extend([idx + dof for dof in _vinculos[vinculo]])
 
     # Transformar em um ndarray
     resDOF = np.array(resDOF, dtype=int)

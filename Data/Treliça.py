@@ -645,16 +645,17 @@ elif caso == 4:
     estrutura = Estrutura('Treliça 3', modelo, coord, conec, n)
     estrutura.definir_apoios(condicoes_contorno)
 
-    # Adicionar cargas (banzo inferior)
-    for i in range(22):
-        estrutura.CLOAD(i, [0, -30, 0])
-
-    # Adicionar cargas (banzo superior)
-    for i in range(22, 44):
-        estrutura.CLOAD(i, [0, -15, 0])
+    # Adicionar cargas (banzo inferior  superior, respectivamente)
+    estrutura.CLOAD({
+        range(0, 22): [0, -30, 0],
+        range(22, 44): [0, -15, 0]
+    })
 
     # Definir parâmetros constitutivos e geométricos
     # estrutura.geometria('circular', E=2.1e8, v=0.3, raio=0.05)
     # estrutura.geometria('tubular', E=2.1e8, v=0.3, raio_ext=0.05, raio_int=0.04)
-    estrutura.geometria('I', E=2.1e8, v=0.3, base=0.1, altura=0.2, espessura_flange=0.01, espessura_alma=0.02)
+    estrutura.geometria({
+        # range(0, len(estrutura.conec)): {"geometria": "I", "E": 2.1e8, "v": 0.3, "base": 0.1, "altura": 0.2, "espessura_flange": 0.01, "espessura_alma": 0.02},
+        range(0, len(estrutura.conec)): {"geometria": "tubular", "E": 2.1e8, "v": 0.3, "raio_ext": 0.05, "raio_int": 0.04},
+    })
 

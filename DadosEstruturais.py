@@ -62,19 +62,36 @@ class Estrutura():
             for idx in indices:
                 self.vinculacoes[idx] = vinculo
 
-    def CLOAD(self, no, carga):
+    def CLOAD(self, esforcos_estrutura:dict):
         """
         Adiciona carga concentrada ao nó especificado, no formato [Px, Py, Pz].
         """
+        for chave, forca in esforcos_estrutura.items():
+            # Converter os esforços para arrays NumPy
+            forca = np.array(forca)
 
-        self.cargas_concentradas.append((no, carga))    
+            # Interpretar os nós (único ou múltiplo)
+            nos = range(chave, chave + 1) if isinstance(chave, int) else chave
 
-    def MLOAD(self, no, carga):
+            for no in nos:
+                # Adicionar os momentos concentrados ao no
+                self.cargas_concentradas.append((no, forca.tolist()))    
+
+    def MLOAD(self, esforcos_estrutura:dict):
         """
         Adiciona momento concentrado ao nó especificado, no formato [Mx, My, Mz].
         """
+        for chave, momento in esforcos_estrutura.items():
+            # Converter os momentos para arrays NumPy
+            momento = np.array(momento)
 
-        self.momentos_concentrados.append((no, carga))
+            # Interpretar os nós (único ou múltiplo)
+            nos = range(chave, chave + 1) if isinstance(chave, int) else chave
+
+            for no in nos:
+                # Adicionar os momentos concentrados ao no
+                self.cargas_concentradas.append((no, momento.tolist()))
+
 
     def DLOAD(self, cargas_estrutura: dict):
         """
@@ -127,13 +144,14 @@ class Estrutura():
             range(10, 20): {"geometria": "tubular", "E": ..., "v": ..., "raio_ext": ..., "raio_int": ...},
         })
         """
+        num_elementos = len(self.conec_original)
         # Inicializar a lista de seções
-        self.secao_inicial = [None] * len(self.conec_original)
+        self.secao_inicial = [None] * num_elementos
         self.secoes = []
 
         # Iterar sobre os intervalos e definir as seções
         for intervalo, dados_secao in secoes.items():
-            indices = range(*intervalo.indices(self.num_elementos)) if isinstance(intervalo, slice) else list(intervalo)
+            indices = range(*intervalo.indices(num_elementos)) if isinstance(intervalo, slice) else list(intervalo)
             for i in indices:
                 self.secao_inicial[i] = self._validar_secao(dados_secao)
 

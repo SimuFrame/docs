@@ -298,7 +298,7 @@ def condensacao_estatica(modelo, k, f, gl_mantidos=None, n=12):
         gl_mantidos = [0, 1, 2, 6, 7, 8]
 
     # Graus de liberdade eliminados
-    gl_eliminados = np.array([i for i in range(n) if i not in gl_mantidos])
+    gl_eliminados = np.setdiff1d(np.arange(n), gl_mantidos)
 
     # Partição das matrizes de rigidez
     k_mm = k[:, gl_mantidos][:, :, gl_mantidos]
@@ -313,7 +313,7 @@ def condensacao_estatica(modelo, k, f, gl_mantidos=None, n=12):
     k_ee_inv = np.linalg.inv(k_ee)
 
     # Condensação das matrizes de rigidez
-    k_cond = k_mm - k_me @ k_ee_inv @ k_em
+    k_cond = k_mm - np.einsum('...ij,...jk,...kl->...il', k_me, k_ee_inv, k_em)
 
     if f is None:
         return k_cond, f
@@ -323,7 +323,7 @@ def condensacao_estatica(modelo, k, f, gl_mantidos=None, n=12):
         f_b = f[:, gl_eliminados, :]
 
         # Condensação dos vetores de forças
-        f_cond = f_a - k_me @ k_ee_inv @ f_b
+        f_cond = f_a - np.einsum('...ij,...jk,...kl->...il', k_me, k_ee_inv, f_b)
 
         return k_cond, f_cond
 

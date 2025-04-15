@@ -157,17 +157,8 @@ elif caso == 4:
     ])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {'XSYMM': np.array([]),
-                          'YSYMM': np.array([]),
-                          'ZSYMM': np.array([]),
-                          'XASYMM': np.array([]),
-                          'YASYMM': np.array([]),
-                          'ZASYMM': np.array([]),
-                          'ARTICULADO': np.array([]),
+    condicoes_contorno = {
                           'FIXOXY': np.array([0, 1]),
-                          'FIXOXZ': np.array([]),
-                          'FIXOYZ': np.array([]),
-                          'ENGASTE': np.array([])
                           }
 
     # Definir o modelo estrutural (viga ou treliça)

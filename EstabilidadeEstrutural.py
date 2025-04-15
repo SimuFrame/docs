@@ -36,23 +36,23 @@ def metodo_subespaco(KE, KG, m, max_iter=40, tol=1e-6):
     autovalores_antigos = np.zeros(m)
 
     for _ in tqdm(range(max_iter), desc='Executando análise de estabilidade estrutural'):
-        # Passo 1: Resolver sistema linear K @ Y = KG @ Q
+        # Resolver sistema linear K @ Y = KG @ Q
         Y = spsolve(KE, KG @ Q)
 
-        # Passo 2: Ortogonalizar via QR
+        # Ortogonalizar via QR
         Q, *_ = qr(Y, mode='economic')
 
-        # Passo 3: Redução do problema ao subespaço
+        # Redução do problema ao subespaço
         KE_tilde = np.transpose(Q) @ KE @ Q
         KG_tilde = np.transpose(Q) @ KG @ Q
 
-        # Passo 4: Resolução do problema de autovalores no subespaço reduzido
+        # Resolução do problema de autovalores no subespaço reduzido
         autovalores, autovetores = eigh(KE_tilde, -KG_tilde)
 
-        # Passo 5: Atualizar subespaço com os novos autovetores
+        # Atualizar subespaço com os novos autovetores
         Q = Q @ autovetores
 
-        # Passo 6: Verificar convergência
+        # Verificar convergência
         if np.allclose(autovalores[:m], autovalores_antigos, rtol=tol):
             break
         autovalores_antigos = autovalores[:m].copy()

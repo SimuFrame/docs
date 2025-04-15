@@ -1,6 +1,5 @@
 # Importações iniciais
 import sys
-import numpy as np
 
 # Bibliotecas autorais
 from GUI.plot_widgets import MatplotlibWidget
@@ -9,8 +8,8 @@ from Visualização import plotar_deslocamentos, plotar_esforcos
 # PySide6 (GUI)
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
-    QTableWidget, QTableWidgetItem, QCheckBox, QLineEdit, QPushButton, QLabel,
-    QGroupBox, QSizePolicy, QComboBox, QStackedWidget, QMessageBox, QApplication
+    QCheckBox, QLineEdit, QPushButton, QLabel, QGroupBox, QSizePolicy,
+    QComboBox, QStackedWidget, QMessageBox, QApplication
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
@@ -73,7 +72,6 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.addTab(self.create_esforcos_tab(), "Esforços")
         self.tabs.addTab(self.create_displacement_tab(num_modos), "Deformação")
-        self.tabs.addTab(self.create_comparison_tab(esforcos_lineares, esforcos_nao_lineares, desl_linear, desl_nao_linear), "Comparação de resultados")
         left_layout.addWidget(self.tabs)
 
         # Adiciona os controles de escala e botões ao layout à esquerda
@@ -361,71 +359,3 @@ class MainWindow(QMainWindow):
         elif current_tab == 1:  # Aba "Deformação"
             self.deformacao(estrutura, tubos_ind, malha_ind, tubos_def, malha_def, 
                             desl_linear, desl_nao_linear, desl_flambagem, MT, autovalores, coords_deformadas)
-
-    def create_comparison_tab(self, esforcos_lineares, esforcos_nao_lineares, desl_linear, desl_nao_linear):
-        widget = QWidget()
-        layout = QVBoxLayout()
-
-        # Menu de seleção para tipo de esforço/deslocamento
-        self.comparison_combo = QComboBox()
-        self.comparison_combo.addItems(["Fx", "Fy", "Fz", "Mx", "My", "Mz", "u", "v", "w", "θx", "θy", "θz"])
-        self.comparison_combo.currentTextChanged.connect(self.update_comparison_table(esforcos_lineares, esforcos_nao_lineares, desl_linear, desl_nao_linear))
-        layout.addWidget(QLabel("Selecione o tipo de esforço/deslocamento:"))
-        layout.addWidget(self.comparison_combo)
-
-        # Tabela para exibir os resultados
-        self.comparison_table = QTableWidget(1, 4)
-        self.comparison_table.setHorizontalHeaderLabels([
-            "Tipo", "Máximo Linear", "Máximo Não-Linear", "Diferença (%)"
-        ])
-        layout.addWidget(self.comparison_table)
-
-        # Conectar o sinal após a criação da tabela
-        self.comparison_combo.currentTextChanged.connect(
-            lambda: self.update_comparison_table(esforcos_lineares, esforcos_nao_lineares, desl_linear, desl_nao_linear)
-        )
-
-        widget.setLayout(layout)
-        return widget
-
-    def update_comparison_table(self, esforcos_lineares, esforcos_nao_lineares, desl_linear, desl_nao_linear):
-        """Atualiza a tabela de comparação com base no tipo selecionado."""
-        if not hasattr(self, 'comparison_table'):  # Verifica se a tabela existe
-            return
-
-        tipo = self.comparison_combo.currentText()
-
-        # Mapear o tipo selecionado para os dados correspondentes
-        data_map = {
-            "Fx": (-esforcos_lineares['Fx'], -esforcos_nao_lineares['Fx']),
-            "Fy": (esforcos_lineares['Fy'], esforcos_nao_lineares['Fy']),
-            "Fz": (esforcos_lineares['Fz'], esforcos_nao_lineares['Fz']),
-            "Mx": (esforcos_lineares['Mx'], esforcos_nao_lineares['Mx']),
-            "My": (esforcos_lineares['My'], esforcos_nao_lineares['My']),
-            "Mz": (esforcos_lineares['Mz'], esforcos_nao_lineares['Mz']),
-            "u": (desl_linear['u'], desl_nao_linear['u']),
-            "v": (desl_linear['v'], desl_nao_linear['v']),
-            "w": (desl_linear['w'], desl_nao_linear['w']),
-            "θx": (desl_linear['θx'], desl_nao_linear['θx']),
-            "θy": (desl_linear['θy'], desl_nao_linear['θy']),
-            "θz": (desl_linear['θz'], desl_nao_linear['θz']),
-        }
-        linear, nao_linear = data_map[tipo]
-
-        # Calcular os valores máximos
-        max_linear = np.max(linear, axis=1)
-        max_nao_linear = np.max(nao_linear, axis=1)
-
-        # Calcular a diferença percentual com verificação para evitar divisão por zero
-        diff_percentual = np.where(max_linear != 0, ((max_nao_linear - max_linear) / max_linear) * 100, 0)
-
-        # Preencher a tabela
-        self.comparison_table.setRowCount(len(max_linear))
-        for i in range(len(max_linear)):
-            self.comparison_table.setItem(i, 0, QTableWidgetItem(f"{tipo} (Elemento {i+1})"))
-            self.comparison_table.setItem(i, 1, QTableWidgetItem(f"{max_linear[i]:.4f}"))
-            self.comparison_table.setItem(i, 2, QTableWidgetItem(f"{max_nao_linear[i]:.4f}"))
-            self.comparison_table.setItem(i, 3, QTableWidgetItem(f"{diff_percentual[i]:.2f}%"))
-
-        # Ajustar o tamanho das colunas
-        self.comparison_table.resizeColumnsToContents()
