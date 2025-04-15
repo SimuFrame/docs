@@ -521,3 +521,67 @@ def coordenadas_deformadas(coords, dl, dnl, d_flamb, MT):
         'não-linear': coord_nao_linear,
         'flambagem': coord_flambagem
     }
+
+
+def campo_deslocamento(ξ, L, n):
+    """
+    Calcula as funções de forma para um elemento de viga de Euler-Bernoulli.
+    
+    Parâmetros:
+        ξ: array (n,)
+            Coordenadas locais no elemento (0 <= ξ <= 1).
+        Le: escalar
+            Comprimentos dos elementos.
+    
+    Retorna:
+        N: array (n, 6, 12)
+            Funções de forma para todos os elementos e pontos.
+    """
+
+    # Inicializar a matriz de funções de forma
+    N = np.zeros((n, 6, 12))
+
+    # Funções de forma para u (deslocamento axial)
+    Nu1 = 1 - ξ
+    Nu2 = ξ
+
+    # Funções de forma para v (deslocamento transversal em y)
+    Nv1 = 1 - 3 * ξ**2 + 2 * ξ**3
+    Nv2 = L * (ξ - 2 * ξ**2 + ξ**3)
+    Nv3 = 3 * ξ**2 - 2 * ξ**3
+    Nv4 = L * (-ξ**2 + ξ**3)
+
+    # Funções de forma para θy (rotação em y)
+    Nθ1 = (6 / L) * (-ξ + ξ**2)
+    Nθ2 = -1 + 4*ξ - 3*ξ**2
+    Nθ3 = -Nθ1
+    Nθ4 = 2*ξ - 3*ξ**2
+
+    # Montagem das funções de forma
+    N[:, 0, 0] = Nu1
+    N[:, 0, 6] = Nu2
+
+    N[:, 1, 1] = Nv1
+    N[:, 1, 5] = Nv2
+    N[:, 1, 7] = Nv3
+    N[:, 1, 11] = Nv4
+
+    N[:, 2, 2] = Nv1
+    N[:, 2, 4] = -Nv2
+    N[:, 2, 8] = Nv3
+    N[:, 2, 10] = -Nv4
+
+    N[:, 3, 3] = Nu1
+    N[:, 3, 9] = Nu2
+
+    N[:, 4, 2] = Nθ1
+    N[:, 4, 4] = Nθ2
+    N[:, 4, 8] = Nθ3
+    N[:, 4, 10] = Nθ4
+
+    N[:, 5, 1] = Nθ1
+    N[:, 5, 5] = -Nθ2
+    N[:, 5, 7] = Nθ3
+    N[:, 5, 11] = -Nθ4
+
+    return N
