@@ -82,17 +82,17 @@ if caso == 1:
                       [11, 4]])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {'XSYMM': np.array([]),
-                          'YSYMM': np.array([]),
-                          'ZSYMM': np.array([]),
-                          'XASYMM': np.array([]),
-                          'YASYMM': np.array([]),
-                          'ZASYMM': np.array([]),
-                          'ARTICULADO': np.array([]),
-                          'FIXOXY': np.array([]),
-                          'FIXOXZ': np.array([]),
-                          'FIXOYZ': np.array([]),
-                          'ENGASTE': np.array([0, 2, 3, 5])
+    condicoes_contorno = {'XSYMM': [],
+                          'YSYMM': [],
+                          'ZSYMM': [1, 4, 6, 7, 8, 9, 10, 11],
+                          'XASYMM':[],
+                          'YASYMM': [],
+                          'ZASYMM': [],
+                          'ARTICULADO': [],
+                          'FIXOXY': [],
+                          'FIXOXZ': [],
+                          'FIXOYZ': [],
+                          'ENGASTE': [0, 2, 3, 5]
                           }
 
     # Definir o modelo estrutural (viga ou treliça)
@@ -103,13 +103,14 @@ if caso == 1:
     estrutura.definir_apoios(condicoes_contorno)
 
     # Adicionar cargas
-    for i in range(12):
-        estrutura.CLOAD(i, [0, -100, 0])
+    estrutura.CLOAD({
+        range(12): [0, -30, 0],
+    })
 
     # Definir parâmetros constitutivos e geométricos
-    # estrutura.geometria('retangular', E=2.7e7, v=0.2, base=0.2, altura=0.2)
-    estrutura.geometria('circular', E=2.1e8, v=0.3, raio=0.05)
-    # estrutura.geometria('tubular', E=2e8, v=0.2, raio_ext=0.05, raio_int=0.04)
+    estrutura.geometria({
+        range(len(conec)): {"geometria": "tubular", "E": 2.1e8, "v": 0.3, "raio_ext": 0.05, "raio_int": 0.04},
+    })
 
 elif caso == 2:
     # Matriz de coordenadas dos pontos (x, y, z)
@@ -137,17 +138,17 @@ elif caso == 2:
                       [5, 6]])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {'XSYMM': np.array([]),
-                          'YSYMM': np.array([]),
-                          'ZSYMM': np.array([1, 2, 4, 5, 6]),
-                          'XASYMM': np.array([]),
-                          'YASYMM': np.array([]),
-                          'ZASYMM': np.array([]),
-                          'ARTICULADO': np.array([]),
-                          'FIXOXY': np.array([]),
-                          'FIXOXZ': np.array([]),
-                          'FIXOYZ': np.array([]),
-                          'ENGASTE': np.array([0, 3])
+    condicoes_contorno = {'XSYMM': [],
+                          'YSYMM': [],
+                          'ZSYMM': [1, 2, 4, 5, 6],
+                          'XASYMM': [],
+                          'YASYMM': [],
+                          'ZASYMM': [],
+                          'ARTICULADO': [],
+                          'FIXOXY': [],
+                          'FIXOXZ': [],
+                          'FIXOYZ': [],
+                          'ENGASTE': [0, 3]
                           }
 
     # Definir o modelo estrutural (viga ou treliça)
@@ -158,12 +159,14 @@ elif caso == 2:
     estrutura.definir_apoios(condicoes_contorno)
 
     # Adicionar cargas
-    for i in range(len(coord)):
-        estrutura.CLOAD(i, [0, -100, 0])
+    estrutura.CLOAD({
+        range(len(coord)): [0, -100, 0],
+    })
 
     # Definir parâmetros constitutivos e geométricos
-    # estrutura.geometria('retangular', E=2.7e7, v=0.2, base=0.2, altura=0.4)
-    estrutura.geometria('circular', E=2.1e8, v=0.3, raio=0.1)
+    estrutura.geometria({
+        range(len(conec)): {"geometria": "circular", "E": 2.1e8, "v": 0.3, "raio": 0.05},
+    })
 
 elif caso == 3:
     # Matriz de coordenadas dos pontos (x, y, z)
@@ -370,17 +373,17 @@ elif caso == 3:
                     [39, 21]])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {'XSYMM': np.array([]),
-                          'YSYMM': np.array([]),
-                          'ZSYMM': np.array([22, 30, 31, 39]),
-                          'XASYMM': np.array([]),
-                          'YASYMM': np.array([]),
-                          'ZASYMM': np.array([]),
-                          'ARTICULADO': np.array([]),
-                          'FIXOXY': np.array([]),
-                          'FIXOXZ': np.array([]),
-                          'FIXOYZ': np.array([]),
-                          'ENGASTE': np.array([0, 10, 11, 21])
+    condicoes_contorno = {'XSYMM': [],
+                          'YSYMM': [],
+                          'ZSYMM': [22, 30, 31, 39],
+                          'XASYMM': [],
+                          'YASYMM': [],
+                          'ZASYMM': [],
+                          'ARTICULADO': [],
+                          'FIXOXY': [],
+                          'FIXOXZ': [],
+                          'FIXOYZ': [],
+                          'ENGASTE': [0, 10, 11, 21]
                           }
 
     # Definir o modelo estrutural (viga ou treliça)
@@ -390,17 +393,16 @@ elif caso == 3:
     estrutura = Estrutura('Treliça 3', modelo, coord, conec, n)
     estrutura.definir_apoios(condicoes_contorno)
 
-    # Adicionar cargas (banzo inferior)
-    for i in range(22):
-        estrutura.CLOAD(i, [0, -30, 0])
-
-    # Adicionar cargas (banzo superior)
-    for i in range(22, 39):
-        estrutura.CLOAD(i, [0, -15, 0])
+    # Adicionar cargas (banzo inferior e superior, respectivamente)
+    estrutura.CLOAD({
+        range(0, 22): [0, -30, 0],
+        range(22, 39): [0, -15, 0]
+    })
 
     # Definir parâmetros constitutivos e geométricos
-    # estrutura.geometria('circular', E=2.1e8, v=0.3, raio=0.05)
-    estrutura.geometria('tubular', E=2.1e8, v=0.3, raio_ext=0.05, raio_int=0.04)
+    estrutura.geometria({
+        range(len(conec)): {"geometria": "tubular", "E": 2.1e8, "v": 0.3, "raio_ext": 0.05, "raio_int": 0.04},
+    })
 
 elif caso == 4:
     # Matriz de coordenadas dos pontos (x, y, z)
@@ -625,17 +627,17 @@ elif caso == 4:
                     [20, 43]])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {'XSYMM': np.array([]),
-                          'YSYMM': np.array([]),
-                          'ZSYMM': np.array([22, 32, 33, 43]),
-                          'XASYMM': np.array([]),
-                          'YASYMM': np.array([]),
-                          'ZASYMM': np.array([]),
-                          'ARTICULADO': np.array([]),
-                          'FIXOXY': np.array([]),
-                          'FIXOXZ': np.array([]),
-                          'FIXOYZ': np.array([]),
-                          'ENGASTE': np.array([0, 10, 11, 21])
+    condicoes_contorno = {'XSYMM': [],
+                          'YSYMM': [],
+                          'ZSYMM': [22, 32, 33, 43],
+                          'XASYMM': [],
+                          'YASYMM': [],
+                          'ZASYMM': [],
+                          'ARTICULADO': [],
+                          'FIXOXY': [],
+                          'FIXOXZ': [],
+                          'FIXOYZ': [],
+                          'ENGASTE': [0, 10, 11, 21]
                           }
 
     # Definir o modelo estrutural (viga ou treliça)
@@ -652,10 +654,7 @@ elif caso == 4:
     })
 
     # Definir parâmetros constitutivos e geométricos
-    # estrutura.geometria('circular', E=2.1e8, v=0.3, raio=0.05)
-    # estrutura.geometria('tubular', E=2.1e8, v=0.3, raio_ext=0.05, raio_int=0.04)
     estrutura.geometria({
-        # range(0, len(estrutura.conec)): {"geometria": "I", "E": 2.1e8, "v": 0.3, "base": 0.1, "altura": 0.2, "espessura_flange": 0.01, "espessura_alma": 0.02},
-        range(0, len(estrutura.conec)): {"geometria": "tubular", "E": 2.1e8, "v": 0.3, "raio_ext": 0.05, "raio_int": 0.04},
+        range(len(conec)): {"geometria": "tubular", "E": 2.1e8, "v": 0.3, "raio_ext": 0.05, "raio_int": 0.04},
     })
 

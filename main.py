@@ -26,7 +26,7 @@ from PySide6.QtWidgets import QApplication
 from pyvistaqt import BackgroundPlotter
 
 # Dados de entrada:1
-import Data.Treliça as Entrada
+import Data.Pórtico as Entrada
 
 # Limpa a tela de forma compat vel com diferentes sistemas operacionais
 os.system('cls' if os.name == 'nt' else 'clear')
@@ -41,11 +41,11 @@ np.set_printoptions(suppress=True, precision=8, floatmode="fixed")
 estrutura = Entrada.estrutura
 
 # Definir parâmetros da estrutura
-nome_estrutura = estrutura.nome     # Nome da estrutura
-modelo = estrutura.modelo           # Modelo estrutural (viga ou treliça)
-nos = len(estrutura.coord)          # Número de nós
-elementos = len(estrutura.conec)    # Número de elementos
-conectividade = estrutura.conec     # Matriz de conectividade
+nome_estrutura = estrutura.nome         # Nome da estrutura
+modelo = estrutura.modelo               # Modelo estrutural (viga ou treliça)
+nos = len(estrutura.coord)              # Número de nós
+elementos = estrutura.num_elementos     # Número de elementos
+conectividade = estrutura.conec         # Matriz de conectividade
 
 # Ordenar conectividades em ordem de ocorrência
 conec_ordenada = np.unique(estrutura.conec.flatten(), return_index=True)[0]

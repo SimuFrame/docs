@@ -44,18 +44,7 @@ if caso == 1:
     ])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {'XSYMM': np.array([]),
-                          'YSYMM': np.array([]),
-                          'ZSYMM': np.array([1]),
-                          'XASYMM': np.array([]),
-                          'YASYMM': np.array([]),
-                          'ZASYMM': np.array([]),
-                          'ARTICULADO': np.array([]),
-                          'FIXOXY': np.array([0, 2]),
-                          'FIXOXZ': np.array([]),
-                          'FIXOYZ': np.array([]),
-                          'ENGASTE': np.array([])
-                          }
+    condicoes_contorno = {'FIXOXY': [0, 2]}
 
     # Definir o modelo estrutural (viga ou treliça)
     modelo = "viga"
@@ -64,8 +53,13 @@ if caso == 1:
     estrutura = Estrutura('Varal (modelo de viga)', modelo, coord, conec, n)
     estrutura.definir_apoios(condicoes_contorno)
 
-    estrutura.CLOAD(1, [0, -0.05, 0])
-    estrutura.geometria('circular', E=2.4e6, v=0.3, raio=0.02)
+    estrutura.CLOAD({
+        1: [0, -0.05, 0]
+    })
+    
+    estrutura.geometria({
+        range(estrutura.num_elementos): {"geometria": "circular", "E": 2.7e7, "v": 0.3, "raio": 0.02},
+    })
 
 elif caso == 2:
     # Matriz de coordenadas dos pontos (x, y, z)
@@ -82,18 +76,7 @@ elif caso == 2:
     ])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {'XSYMM': np.array([]),
-                          'YSYMM': np.array([]),
-                          'ZSYMM': np.array([1]),
-                          'XASYMM': np.array([]),
-                          'YASYMM': np.array([]),
-                          'ZASYMM': np.array([]),
-                          'ARTICULADO': np.array([]),
-                          'FIXOXY': np.array([0, 2]),
-                          'FIXOXZ': np.array([]),
-                          'FIXOYZ': np.array([]),
-                          'ENGASTE': np.array([])
-                          }
+    condicoes_contorno = {'FIXOXY': [0, 2]}
 
     # Definir o modelo estrutural (viga ou treliça)
     modelo = "viga"
@@ -102,10 +85,15 @@ elif caso == 2:
     estrutura = Estrutura('Viga (carga concentrada)', modelo, coord, conec, n)
     estrutura.definir_apoios(condicoes_contorno)
 
-    estrutura.CLOAD(1, [0, -0.5, 0])
-    # estrutura.DLOAD(0, [0, -0.25, 0], [0, -0.25, 0])
-    # estrutura.DLOAD(1, [0, -0.25, 0], [0, -0.25, 0])
-    estrutura.geometria('retangular', E=2500, v=0.3, base=1.0, altura=0.12)
+    # Adicionar cargas
+    estrutura.CLOAD({
+        1: [0, -0.5, 0]
+    })
+
+    # Definir parâmetros constitutivos e geométricos
+    estrutura.geometria({
+        range(len(conec)): {"geometria": "retangular", "E": 2.7e7, "v": 0.2, "base": 0.20, "altura": 0.40},
+    })
 
 elif caso == 3:
     # Matriz de coordenadas dos pontos (x, y, z)
@@ -120,18 +108,7 @@ elif caso == 3:
     ])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {'XSYMM': np.array([]),
-                          'YSYMM': np.array([]),
-                          'ZSYMM': np.array([]),
-                          'XASYMM': np.array([]),
-                          'YASYMM': np.array([]),
-                          'ZASYMM': np.array([]),
-                          'ARTICULADO': np.array([]),
-                          'FIXOXY': np.array([]),
-                          'FIXOXZ': np.array([]),
-                          'FIXOYZ': np.array([]),
-                          'ENGASTE': np.array([0])
-                          }
+    condicoes_contorno = {'ENGASTE': [0]}
 
     # Definir o modelo estrutural (viga ou treliça)
     modelo = "viga"
@@ -140,9 +117,15 @@ elif caso == 3:
     estrutura = Estrutura('Viga em balanço', modelo, coord, conec, n)
     estrutura.definir_apoios(condicoes_contorno)
 
+    # Adicionar cargas
+    estrutura.CLOAD({
+        1, [0, -200, 0]
+    })
+
     # Definir parâmetros constitutivos e geométricos
-    estrutura.CLOAD(1, [0, -200, 0])
-    estrutura.geometria('retangular', E=2.7e7, v=0.2, base=0.20, altura=0.40)
+    estrutura.geometria({
+        range(len(conec)): {"geometria": "retangular", "E": 2.7e7, "v": 0.2, "base": 0.20, "altura": 0.40},
+    })
 
 elif caso == 4:
     # Matriz de coordenadas dos pontos (x, y, z)
@@ -157,9 +140,7 @@ elif caso == 4:
     ])
 
     # Definir os índices dos apoios
-    condicoes_contorno = {
-                          'FIXOXY': np.array([0, 1]),
-                          }
+    condicoes_contorno = {'FIXOXY': [0, 1]}
 
     # Definir o modelo estrutural (viga ou treliça)
     modelo = "viga"
@@ -175,9 +156,5 @@ elif caso == 4:
 
     # Definir parâmetros constitutivos e geométricos
     estrutura.geometria({
-        range(0, 1): {"geometria": "retangular", "E": 2.7e7, "v": 0.3, "base": 0.2, "altura": 0.4},
+        range(len(conec)): {"geometria": "retangular", "E": 2.7e7, "v": 0.3, "base": 0.2, "altura": 0.4},
     })
-    # estrutura.geometria('caixa', E=2.1e8, v=0.3, base=0.20, altura=0.40, espessura=0.02)
-    # estrutura.geometria('T', E=2.1e8, v=0.3, base=0.3, altura=0.4, espessura_flange=0.02, espessura_alma=0.03)
-    # estrutura.geometria('circular', E=2e8, v=0.3, raio=0.1)
-    # estrutura.geometria('tubular', E=2e8, v=0.3, raio_ext=0.1, raio_int=0.08)

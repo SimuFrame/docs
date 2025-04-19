@@ -44,6 +44,7 @@ class Estrutura():
         # Atualizar as propriedades da estrutura
         self.coord = np.array(novas_coords, dtype=float)
         self.conec = np.array(novas_conec, dtype=int)
+        self.num_elementos = int(len(self.conec))
         
         # Inicializar as condições de contorno
         self.vinculacoes = [''] * len(self.coord)
@@ -144,14 +145,13 @@ class Estrutura():
             range(10, 20): {"geometria": "tubular", "E": ..., "v": ..., "raio_ext": ..., "raio_int": ...},
         })
         """
-        num_elementos = len(self.conec_original)
         # Inicializar a lista de seções
-        self.secao_inicial = [None] * num_elementos
+        self.secao_inicial = [None] * len(self.conec_original)
         self.secoes = []
 
         # Iterar sobre os intervalos e definir as seções
         for intervalo, dados_secao in secoes.items():
-            indices = range(*intervalo.indices(num_elementos)) if isinstance(intervalo, slice) else list(intervalo)
+            indices = range(*intervalo.indices(len(self.conec_original))) if isinstance(intervalo, slice) else list(intervalo)
             for i in indices:
                 self.secao_inicial[i] = self._validar_secao(dados_secao)
 
