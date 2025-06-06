@@ -1,7 +1,8 @@
 import numpy as np
 
 class Estrutura():
-    def __init__(self, nome, modelo, coord, conec, subdivisoes):
+    def __init__(self, analise, nome, modelo, coord, conec, subdivisoes):
+        self.analise = analise
         self.nome = nome
         self.modelo = modelo
         self.coord = np.array(coord)
@@ -18,7 +19,8 @@ class Estrutura():
         coord_to_index = {coord: i for i, coord in enumerate(novas_coords)}
 
         if self.subdivisoes == 1:
-            novas_conec, novas_coords = self.conec, self.coord
+            novas_conec = self.conec
+            novas_coords = self.coord
         else:
             for no_inicial, no_final in self.conec:
                 # Coordenadas dos nós do elemento
@@ -91,7 +93,7 @@ class Estrutura():
 
             for no in nos:
                 # Adicionar os momentos concentrados ao no
-                self.cargas_concentradas.append((no, momento.tolist()))
+                self.momentos_concentrados.append((no, momento.tolist()))
 
 
     def DLOAD(self, cargas_estrutura: dict):
@@ -146,7 +148,8 @@ class Estrutura():
         })
         """
         # Inicializar a lista de seções
-        self.secao_inicial = [None] * len(self.conec_original)
+        self.secao_inicial = [{} for _ in range(len(self.conec_original))]
+        # self.secao_inicial = [None] * len(self.conec_original)
         self.secoes = []
 
         # Iterar sobre os intervalos e definir as seções
@@ -192,8 +195,8 @@ class Estrutura():
 
         # Inicializar os dados geométricos
         dimensoes = {
-            "base": None, "altura": None, "raio": None, "raio_ext": None,
-            "raio_int": None, "espessura": None, "espessura_flange": None, "espessura_alma": None,
+            "base": 0.0, "altura": 0.0, "raio": 0.0, "raio_ext": 0.0,
+            "raio_int": 0.0, "espessura": 0.0, "espessura_flange": 0.0, "espessura_alma": 0.0,
         }
 
         # Validar e armazenar os parâmetros da seção

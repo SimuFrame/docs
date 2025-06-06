@@ -8,20 +8,19 @@ def matriz_geometrica_analitica(modelo, elementos, propriedades, numDOF, DOF, GL
     Calcula a matriz de rigidez geométrica analítica da estrutura.
 
     Args:
-        elementos (int): Número de elementos.
         modelo (str): Tipo de modelo estrutural ('viga' ou 'treliça').
+        elementos (int): Número de elementos.
+        propriedades (dict): Dicionário com as propriedades dos elementos.
         numDOF (int): Número total de graus de liberdade.
         DOF (int): Número de graus de liberdade por nó.
         GLe (np.ndarray): Graus de liberdade dos elementos.
         T (np.ndarray): Matrizes de transformação.
         fl (np.ndarray): Vetor de forças locais.
-        L (np.ndarray): Comprimentos dos elementos.
-        A (np.ndarray): Área da seção transversal dos elementos.
-        Ix (np.ndarray): Momento de inércia em relação ao eixo x.
 
     Returns:
-        np.ndarray: Matriz de rigidez geométrica global.
+        KG (np.ndarray): Matriz de rigidez geométrica global.
     """
+    
     # Inicialização da matriz de rigidez geométrica local, [kg]
     kg = np.zeros((elementos, 12, 12))
 

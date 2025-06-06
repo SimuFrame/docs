@@ -45,27 +45,26 @@ def newton_raphson(F, KE, elementos, estrutura, propriedades, numDOF, DOF, GLL, 
     O critério de convergência é verificado utilizando o critério de força e deslocamento.
 
     Args:
-        Fr (numpy array): Vetor de forças externas.
-        Ke (numpy array): Matriz de rigidez inicial.
+        F (numpy array): Vetor de forças externas.
+        KE (numpy array): Matriz de rigidez inicial.
         elementos (int): Número de elementos.
         estrutura (objeto): Instância da classe Estrutura.
+        propriedades (dict): Dicionário de propriedades da estrutura.
         numDOF (int): Número de graus de liberdade.
         DOF (int): Número de graus de liberdade por nó.
         GLL (numpy array): Nós globais.
         GLe (numpy array): Elementos globais.
         T (numpy array): Matriz de transformação local-global.
-        E (numpy array): Módulo de elasticidade.
-        nu (numpy array): Coeficiente de Poisson.
-        A (numpy array): Área da seção transversal.
-        L (numpy array): Comprimento dos elementos.
-        Ix (numpy array): Momento de inércia.
-        num_passos (int, optional): Número de passos de carga. Defaults to 5.
-        max_iter (int, optional): Número máximo de iterações internas. Defaults to 40.
-        max_reducao (int, optional): Número máximo de reduções de passo. Defaults to 5.
+        num_passos (int, opcional): Número de passos de carga. Padrão de 5.
+        max_iter (int, opcional): Número máximo de iterações internas. Padrão de 40.
+        max_reducao (int, opcional): Número máximo de reduções de passo. Padrão de 5.
 
     Returns:
-        tuple: Um tuple contendo os deslocamentos e forças internas (dnl, fnl).
+        d (np.ndarray): Deslocamentos não lineares finais (global).
+        dnl (np.ndarray): Deslocamentos não lineares finais (local).
+        fnl (np.ndarray): Forças internas não lineares finais.
     """
+
     # Fatores de redução
     reducao_divergencia = 0.25
     reducao_convergencia_lenta = 0.5
@@ -165,7 +164,7 @@ def newton_raphson(F, KE, elementos, estrutura, propriedades, numDOF, DOF, GLL, 
     plt.ioff()
     plt.close()
 
-    # Expandir os deslocamentos e forças para 6 graus de liberdade
-    dnl, fnl, _ = expandir_dados(elementos, estrutura.modelo, de, fe) # type: ignore
+    # Expandir os deslocamentos e forças para 6 graus de liberdade (treliça)
+    dnl, fnl, _ = expandir_dados(elementos, estrutura.modelo, de, fe)
 
     return d, dnl, fnl

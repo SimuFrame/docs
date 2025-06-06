@@ -59,8 +59,8 @@ def carga_nodal_dist(elementos, q, propriedades):
         # Atribuição das forças e momentos ao vetor de forças nodais
         f[:, [0, 1, 2], 0] = np.stack([Pxi, Pyi, Pzi], axis=1)
         f[:, [6, 7, 8], 0] = np.stack([Pxf, Pyf, Pzf], axis=1)
-        f[:, [3, 4, 5], 0] = np.stack([Mzi-Myi, Mxi-Mzi, Myi-Mxi], axis=1)
-        f[:, [9, 10, 11], 0] = np.stack([Myf-Mzf, Mzf-Mxf, Mxf-Myf], axis=1)
+        f[:, [3, 4, 5], 0] = np.stack([Mzi - Myi, Mxi - Mzi, Myi - Mxi], axis=1)
+        f[:, [9, 10, 11], 0] = np.stack([Myf - Mzf, Mzf - Mxf, Mxf - Myf], axis=1)
 
         return f
 
@@ -68,19 +68,22 @@ def carga_nodal_dist(elementos, q, propriedades):
         return f
 
 
-def vetor_forcas_globais(modelo, elementos, P, M, f, GLe, numDOF, DOF, conec):
+def vetor_forcas_globais(modelo, P, M, f, GLe, numDOF, DOF, conec):
     """
     Montagem do vetor de forças globais, {F}.
 
-    Parâmetros:
+    Args:
+        modelo (str): Tipo de modelo estrutural ('viga' ou 'treliça').
         P (np.array): Vetor de forças concentradas.
         M (np.array): Vetor de momentos concentrados.
         f (np.array): Vetor de forças distribuídas.
         GLe (np.array): Vetor de graus de liberdade dos elementos.
+        numDOF (int): Número total de graus de liberdade.
         DOF (int): Número de graus de liberdade por nó.
+        conec (np.array): Vetor de conectividade.
 
-    Retorna:
-        F (np.array): Vetor de forças globais com shape (nós * DOF, 1).
+    Returns:
+        F (np.array): Vetor de forças globais.
     """
 
     # Número total de graus de liberdade

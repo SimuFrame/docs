@@ -84,15 +84,11 @@ def matriz_elastica_analitica(modelo, elementos, propriedades, numDOF, DOF, GLe,
     Args:
         modelo: Tipo de modelo estrutural ('viga' ou 'treliça').
         elementos: Número de elementos na estrutura.
+        propriedades: Dicionário com as propriedades dos elementos.
         numDOF: Número total de graus de liberdade.
         DOF: Número de graus de liberdade por nó.
         GLe: Graus de liberdade dos elementos.
         T: Matrizes de transformação.
-        E: Módulo de elasticidade.
-        G: Módulo de cisalhamento.
-        A: Área da seção transversal.
-        Ix, Iy, Iz: Momentos de inércia.
-        L: Comprimento dos elementos.
         f: Vetor de forças.
 
     Returns:

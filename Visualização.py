@@ -28,6 +28,7 @@ def plot_estrutura_pyvista(grid_tubos, grid_secao, plotter, estrutura, transpare
     # Adicionar eixos ao gráfico
     plotter.show_axes()
 
+
 def coordenadas_deformadas(coords, dl, dnl, d_flamb, MT, tipo, escala):
     """
     Função para obter as coordenadas deformadas ordenadas.
@@ -129,8 +130,77 @@ def adicionar_escalars(i, malha, valores_iniciais, valores_finais):
     return malha
 
 
-def plotar_deslocamentos(tubos_ind, malha_ind, tubos_def, malha_def, estrutura, desl_linear, desl_nao_linear, desl_flambagem,
+def deslocamentos_plotagem(elementos, num_modos, dl, dnl, d_flamb):
+    """
+    Calcular os deslocamentos lineares, não-lineares e de flambagem-linear para a plotagem.
+
+    Args:
+        dl (np.ndarray): Deslocamentos lineares.
+        dnl (np.ndarray): Deslocamentos não-lineares.
+        d_flamb (np.ndarray): Deslocamentos de flambagem.
+
+    Returns:
+        deslocamentos_lineares (dict): Dicionário com os deslocamentos lineares.
+        deslocamentos_nao_lineares (dict): Dicionário com os deslocamentos não-lineares.
+        deslocamentos_flambagem (dict): Dicionário com os deslocamentos de flambagem.
+    """
+
+    # Inicializar dicionários para armazenar os resultados
+    deslocamentos_lineares = {key: np.zeros((elementos, 2)) for key in ['u', 'v', 'w', 'θx', 'θy', 'θz']}
+    deslocamentos_nao_lineares = {key: np.zeros((elementos, 2)) for key in ['u', 'v', 'w', 'θx', 'θy', 'θz']}
+    deslocamentos_flambagem = {key: np.zeros((num_modos, elementos, 2)) for key in ['u', 'v', 'w', 'θx', 'θy', 'θz']}
+
+    # Obtenção dos deslocamentos nodais lineares
+    deslocamentos_lineares['u'] = dl[:, [0, 6], 0]
+    deslocamentos_lineares['v'] = dl[:, [1, 7], 0]
+    deslocamentos_lineares['w'] = dl[:, [2, 8], 0]
+    deslocamentos_lineares['θx'] = dl[:, [3, 9], 0]
+    deslocamentos_lineares['θy'] = dl[:, [4, 10], 0]
+    deslocamentos_lineares['θz'] = dl[:, [5, 11], 0]
+
+    # Obtenção dos deslocamentos nodais não lineares
+    deslocamentos_nao_lineares['u'] = dnl[:, [0, 6], 0]
+    deslocamentos_nao_lineares['v'] = dnl[:, [1, 7], 0]
+    deslocamentos_nao_lineares['w'] = dnl[:, [2, 8], 0]
+    deslocamentos_nao_lineares['θx'] = dnl[:, [3, 9], 0]
+    deslocamentos_nao_lineares['θy'] = dnl[:, [4, 10], 0]
+    deslocamentos_nao_lineares['θz'] = dnl[:, [5, 11], 0]
+
+    # Obtenção dos deslocamentos nodais de flambagem
+    deslocamentos_flambagem['u'] = d_flamb[:, :, [0, 6], 0]
+    deslocamentos_flambagem['v'] = d_flamb[:, :, [1, 7], 0]
+    deslocamentos_flambagem['w'] = d_flamb[:, :, [2, 8], 0]
+    deslocamentos_flambagem['θx'] = d_flamb[:, :, [3, 9], 0]
+    deslocamentos_flambagem['θy'] = d_flamb[:, :, [4, 10], 0]
+    deslocamentos_flambagem['θz'] = d_flamb[:, :, [5, 11], 0]
+
+    return deslocamentos_lineares, deslocamentos_nao_lineares, deslocamentos_flambagem
+
+
+def plotar_deslocamentos(tubos_ind, malha_ind, tubos_def, malha_def, estrutura, dl, dnl, d_flamb,
                          MT, autovalores, analise, eixo, modo, coords_deformadas, widget):
+    """
+    Função para plotar os deslocamentos da estrutura.
+
+    Parâmetros:
+        tubos_ind (list): Lista de tubos da estrutura indeformada.
+        malha_ind (list): Lista de malhas da estrutura indeformada.
+        tubos_def (list): Lista de tubos da estrutura deformada.
+        malha_def (list): Lista de malhas da estrutura deformada.
+        estrutura (Estrutura): Instância da classe Estrutura.
+        dl (np.ndarray): Deslocamentos lineares.
+        dnl (np.ndarray): Deslocamentos não-lineares.
+        d_flamb (np.ndarray): Deslocamentos de flambagem.
+        MT (np.ndarray): Matriz de transformação.
+        autovalores (list): Lista com os valores de autovalores.
+        analise (str): Tipo de análise ('linear', 'não-linear' ou 'flambagem').
+        eixo (str): Eixo de deslocamento ('UX', 'UY', 'UZ', 'U').
+        modo (int): Modo de flambagem.
+        coords_deformadas (np.ndarray): Coordenadas deformadas da estrutura.
+        widget (pyvista.Plotter): Widget para plotar a estrutura.
+    """
+
+    # Resetar o widget
     widget.clear_actors()
 
     # Definir cor de fundo
@@ -138,6 +208,9 @@ def plotar_deslocamentos(tubos_ind, malha_ind, tubos_def, malha_def, estrutura, 
 
     # Plotar a estrutura indeformada
     plot_estrutura_pyvista(tubos_ind, malha_ind, widget, estrutura, transparencia=0.50, plotar_secao=False)
+
+    # Calcular os deslocamentos para a plotagem
+    desl_linear, desl_nao_linear, desl_flambagem = deslocamentos_plotagem(dl.shape[0], len(autovalores), dl, dnl, d_flamb)
 
     # Calcular deformação para todos os elementos
     deslocamentos = calcular_deslocamentos(desl_linear, desl_nao_linear, desl_flambagem, MT, analise, modo)
@@ -403,6 +476,7 @@ def plotar_esforcos(tubos_ind, malha_ind, tubos_def, malha_def, elementos, estru
         # Adicionar título ao gráfico
         widget.add_text(title, position='upper_left', font_size=14)
 
+
 def plot_apoio(ax, plotter, estrutura, widget):
     # Representar os apoios
     if widget == 'matplotlib':
@@ -427,6 +501,7 @@ def plot_apoio(ax, plotter, estrutura, widget):
                 plotter.add_mesh(cone, color='gray')
     else:
         raise ValueError("Widget inválido. Use 'matplotlib' ou 'pyvista'.")
+
 
 def matriz_rotacao_malha(L_vec, ref_vector):
     """

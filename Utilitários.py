@@ -118,6 +118,35 @@ def forcas_locais(dl, ke, T, DOF, f=None):
         return ke @ dl - T[:, :2*DOF, :2*DOF] @ f
 
 
+def forcas_externas(elementos, nos, estrutura):
+    """
+    Função para calcular as forças externas de cada elemento.
+
+    Parâmetros:
+        elementos (int): Número de elementos.
+        nos (int): Número de nós.
+        estrutura (Estrutura): Instância da classe Estrutura.
+
+    Returns:
+        np.ndarray: Vetor de forças externas do elemento.
+    """
+
+    # Inicializar vetores de carga
+    P = np.zeros((nos, 3), dtype=float)              # Carga concentrada por nó (kN)
+    q = np.zeros((elementos, 2, 3), dtype=float)     # Carga distribuída por extremidade do elemento (kN/m)
+    M = np.zeros((nos, 3), dtype=float)              # Momento concentrado por nó (kN.m)
+
+    # Aplicar cargas concentradas e momentos
+    for no, carga in estrutura.cargas_concentradas:
+        P[no] = carga
+    for elemento, qi, qf in estrutura.cargas_distribuidas:
+        q[elemento] = [qi, qf]
+    for no, momento in estrutura.momentos_concentrados:
+        M[no] = momento
+
+    return P, q, M
+
+
 def dados_geometricos_constitutivos(elementos, estrutura):
     """
     Calcula e retorna dados geométricos e constitutivos para elementos estruturais.

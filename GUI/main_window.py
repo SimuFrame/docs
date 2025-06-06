@@ -55,8 +55,8 @@ def ValidacaoEstrutura(nome_estrutura):
 # Criar interface gráfica
 class MainWindow(QMainWindow):
     def __init__(self, nome_estrutura, elementos, estrutura, tubos_ind, malha_ind, tubos_def, malha_def, num_modos, 
-                 esforcos_lineares, esforcos_nao_lineares, desl_linear, desl_nao_linear,
-                 desl_flambagem, xp, coords, MT, autovalores, pontos_int, coords_deformadas):
+                 esforcos_lineares, esforcos_nao_lineares, desl_linear, desl_nao_linear, desl_flambagem,
+                 xp, coords, MT, autovalores, pontos_int, coords_deformadas):
         super().__init__()
         self.setWindowTitle(f"SimuFrame: {nome_estrutura}")
         self.setWindowIcon(QIcon(r"C:\Users\volpi\Documents\Faculdade\MEF\Imagens TCC\TrussDeslLinear.png"))
