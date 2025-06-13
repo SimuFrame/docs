@@ -5,40 +5,40 @@
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)
 ![Status](https://img.shields.io/badge/Status-Under%20Development-orange)
 
-## 📌 Overview
+## Overview
 
-This Python-based program performs **geometric nonlinear analysis** of **three-dimensional frame structures**, implementing the **Finite Element Method (FEM)** with **von Kármán kinematics**. It is particularly suitable for **thin-walled structures** and **slender frames**, where second-order effects are significant.
+SimuFrame is a Python-based computational tool for **geometric nonlinear analysis** of **three-dimensional frame structures**. Implementing the **Finite Element Method (FEM)** with **von Kármán kinematics**, it provides robust solutions for **thin-walled structures** and **slender frames**, where second-order effects significantly influence structural behavior.
 
-## 🧠 Theoretical Background
+## Theoretical Foundation
 
-The program integrates the **von Kármán strain-displacement relationship** into the element stiffness matrix to capture coupling between axial and bending effects under **moderate rotations** and **small strains**.
+The framework incorporates the **von Kármán strain-displacement relationship** into the element stiffness matrix, accurately capturing axial-bending coupling under **moderate rotations** while maintaining **small strain assumptions**.
 
-- **Geometric nonlinearity** modeled via von Kármán theory  
-- **Large displacement** behavior enabled  
-- **Small strain assumption** maintained
+Key theoretical aspects:
+- **Geometric nonlinearity** via von Kármán theory
+- **Large displacement** analysis capability
+- **Small strain** formulation
 
-## ⚙️ Key Features
+## Core Features
 
-- 🧮 **Nonlinear solver** using the Newton–Raphson iterative scheme  
-- 📊 **3D post-processing** with [PyVista](https://docs.pyvista.org/) and [Matplotlib](https://matplotlib.org/)  
-- 🧠 **Eigenvalue buckling analysis** module  
-- ✅ **Validation** with commercial software (ANSYS, Abaqus, Robot Structural Analysis)
+- **Nonlinear solver** using the Newton–Raphson iterative method
+- **3D post-processing** with PyVista and Matplotlib integration
+- **Eigenvalue buckling analysis** module
+- **Validation** against industry-standard software (ANSYS, Abaqus, Robot Structural Analysis)
 
-## ✅ Validation Results
+## Validation Benchmarks
 
-- Displacement deviations below **0.11%** compared to ANSYS, Abaqus, and RSA  
-- Buckling load predictions within **5% of Abaqus** in complex cases  
-- **Exact match** with RSA results in most scenarios
+- Maximum displacement deviation: **< 0.11%** vs. commercial solutions
+- Buckling load accuracy: **within 5%** of Abaqus in complex cases
+- **Full agreement** with Robot Structural Analysis in standard scenarios
 
-## 🧩 Applications
+## Applications
 
-This open-source tool is intended for use in:
+Designed for both academic and professional use, SimuFrame serves:
+- Civil and structural engineering simulations
+- Analysis of systems sensitive to **second-order effects**
+- Research and education in computational structural mechanics
 
-- Civil engineering simulations  
-- Structural systems sensitive to **second-order effects**  
-- Educational and research purposes where commercial software may be inaccessible
-
-## 💾 Installation
+## Installation
 
 ```bash
 git clone https://github.com/SimuFrame/docs.git
